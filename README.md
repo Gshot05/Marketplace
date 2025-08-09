@@ -10,7 +10,8 @@
 ## Быстрый старт (docker)
 1. Склонируй/распакуй проект
 2. Запусти `docker-compose up -d --build`
-3. Приложение будет на http://localhost:8080
+3. Зайди в VSCode и нажми F5, автоматически запустится сервис
+4. Для тестирования можешь использовать любой CURL клиент
 
 Примеры:
 - Регистрация: `POST /auth/register` { email, password, role: "customer"|"performer", name }
