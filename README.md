@@ -9,7 +9,7 @@
 
 ## Быстрый старт (docker)
 1. Склонируй/распакуй проект
-2. Запусти `docker-compose up -d`
+2. Запусти `docker-compose up -d --build`
 3. Приложение будет на http://localhost:8080
 
 Примеры:
