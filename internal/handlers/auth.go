@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/mail"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,8 @@ import (
 func register(db *gorm.DB) gin.HandlerFunc {
 	type req struct {
 		Email,
-		Password, Role,
+		Password,
+		Role,
 		Name string
 	}
 	return func(c *gin.Context) {
@@ -24,8 +26,13 @@ func register(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		if _, err := mail.ParseAddress(r.Email); err != nil {
+		if err := validateEmail(r.Email); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := validateName(r.Name); err != nil {
+			c.JSON(400, gin.H{"error": "empty name"})
 			return
 		}
 
@@ -47,6 +54,18 @@ func register(db *gorm.DB) gin.HandlerFunc {
 		token, _ := auth.GenerateToken(u.ID, u.Role)
 		c.JSON(200, gin.H{"token": token})
 	}
+}
+
+func validateEmail(email string) error {
+	_, err := mail.ParseAddress(email)
+	return err
+}
+
+func validateName(name string) error {
+	if name == "" || name == " " {
+		return errors.New("name cannot be empty")
+	}
+	return nil
 }
 
 func login(db *gorm.DB) gin.HandlerFunc {
