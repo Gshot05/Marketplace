@@ -21,8 +21,8 @@ services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URL: postgres://postgres:0Qwerty12$&@postgres:5432/marketplace?sslmode=disable
-      JWT_SECRET: 036af07663dbc324387f7ba6d08ba981b79876369d557271a3ad711158a7bde7
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:8080"
 
