@@ -12,7 +12,11 @@ import (
 )
 
 func register(db *gorm.DB) gin.HandlerFunc {
-	type req struct{ Email, Password, Role, Name string }
+	type req struct {
+		Email,
+		Password, Role,
+		Name string
+	}
 	return func(c *gin.Context) {
 		var r req
 		if err := c.BindJSON(&r); err != nil {
