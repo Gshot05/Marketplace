@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: marketplace_pg
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 0Qwerty12$&
+      POSTGRES_DB: marketplace
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: marketplace_app
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:0Qwerty12$&@postgres:5432/marketplace?sslmode=disable
+      JWT_SECRET: 036af07663dbc324387f7ba6d08ba981b79876369d557271a3ad711158a7bde7
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

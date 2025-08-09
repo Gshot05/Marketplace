@@ -1,0 +1,314 @@
+openapi: 3.0.0
+info:
+  title: Marketplace API
+  description: API для маркетплейса услуг (Go + PostgreSQL)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер разработки
+tags:
+  - name: auth
+    description: Аутентификация и регистрация
+  - name: offers
+    description: Управление предложениями (для заказчиков)
+  - name: services
+    description: Управление услугами (для исполнителей)
+  - name: favorites
+    description: Управление избранным (для заказчиков)
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securePassword123
+                role:
+                  type: string
+                  enum: [customer, performer]
+                  example: customer
+                name:
+                  type: string
+                  example: Иван Иванов
+              required: [email, password, role]
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT токен
+        '400':
+          description: Неверные входные данные
+        '500':
+          description: Ошибка сервера
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Аутентификация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securePassword123
+              required: [email, password]
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT токен
+        '401':
+          description: Неверные учетные данные
+
+  /api/offers:
+    post:
+      tags: [offers]
+      summary: Создать новое предложение (только для заказчиков)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Нужен дизайн логотипа
+                description:
+                  type: string
+                  example: Требуется разработать логотип для стартапа
+                price:
+                  type: number
+                  format: float
+                  example: 5000.50
+              required: [title, description, price]
+      responses:
+        '200':
+          description: Созданное предложение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '403':
+          description: Только для заказчиков
+        '500':
+          description: Ошибка сервера
+
+    get:
+      tags: [offers]
+      summary: Получить список всех предложений
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'
+
+  /api/services:
+    post:
+      tags: [services]
+      summary: Создать новую услугу (только для исполнителей)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Дизайн логотипа
+                description:
+                  type: string
+                  example: Профессиональный дизайн логотипа для вашего бренда
+                price:
+                  type: number
+                  format: float
+                  example: 5000.50
+              required: [title, description, price]
+      responses:
+        '200':
+          description: Созданная услуга
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '403':
+          description: Только для исполнителей
+        '500':
+          description: Ошибка сервера
+
+    get:
+      tags: [services]
+      summary: Получить список всех услуг
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список услуг
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+
+  /api/favorites:
+    post:
+      tags: [favorites]
+      summary: Добавить услугу в избранное (только для заказчиков)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service_id:
+                  type: integer
+                  example: 1
+              required: [service_id]
+      responses:
+        '200':
+          description: Добавлено в избранное
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Favorite'
+        '403':
+          description: Только для заказчиков
+        '404':
+          description: Услуга не найдена
+        '500':
+          description: Ошибка сервера
+
+    get:
+      tags: [favorites]
+      summary: Получить список избранного (только для заказчиков)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список избранного
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Favorite'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+          enum: [customer, performer]
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Offer:
+      type: object
+      properties:
+        id:
+          type: integer
+        customer_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        performer_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+
+    Favorite:
+      type: object
+      properties:
+        id:
+          type: integer
+        customer_id:
+          type: integer
+        service_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
