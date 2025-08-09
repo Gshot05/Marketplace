@@ -18,7 +18,3 @@
 - Создать оффер (customer): `POST /api/offers` (Authorization: Bearer <token>)
 - Создать услугу (performer): `POST /api/services`
 - Добавить в избранное (customer): `POST /api/favorites` { service_id }
-
-## Замечания
-- Секрет для JWT в `internal/auth/auth.go` нужно заменить на secure secret и вынести в env
-- Для продакшн: миграции, валидация, логирование, тесты, rate-limit, CORS, HTTPS и т.д.
