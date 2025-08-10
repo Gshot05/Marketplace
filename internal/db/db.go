@@ -1,34 +1,48 @@
 package db
 
 import (
+	"context"
 	"log"
-	"marketplace/internal/model"
 	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
-func Connect() *gorm.DB {
+func RunInitSQL(pool *pgxpool.Pool, filepath string) error {
+	ctx := context.Background()
+
+	sqlBytes, err := os.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+
+	sql := string(sqlBytes)
+
+	_, err = pool.Exec(ctx, sql)
+	if err != nil {
+		log.Printf("Failed to execute init SQL: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func Connect() *pgxpool.Pool {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	db, err := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
+	pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal("Failed to connect to datrabse: v%", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	if err := db.AutoMigrate(
-		&model.User{},
-		&model.Offer{},
-		&model.Service{},
-		&model.Favorite{},
-	); err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
+	err = RunInitSQL(pool, os.Getenv("MIGRATIONS"))
+	if err != nil {
+		log.Fatalf("Failed to run init.sql: %v", err)
 	}
 
-	return db
+	return pool
 }

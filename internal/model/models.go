@@ -3,16 +3,16 @@ package model
 import "time"
 
 type User struct {
-	ID           uint   `gorm:"primaryKey"`
-	Email        string `gorm:"unique;not null"`
-	PasswordHash string `gorm:"not null"`
-	Role         string `gorm:"not null"` // customer | performer
+	ID           uint
+	Email        string
+	PasswordHash string
+	Role         string // customer | performer
 	Name         string
 	CreatedAt    time.Time
 }
 
 type Offer struct {
-	ID          uint `gorm:"primaryKey"`
+	ID          uint
 	CustomerID  uint
 	Title       string
 	Description string
@@ -21,7 +21,7 @@ type Offer struct {
 }
 
 type Service struct {
-	ID          uint `gorm:"primaryKey"`
+	ID          uint
 	PerformerID uint
 	Title       string
 	Description string
@@ -30,7 +30,7 @@ type Service struct {
 }
 
 type Favorite struct {
-	ID         uint `gorm:"primaryKey"`
+	ID         uint
 	CustomerID uint
 	ServiceID  uint
 	CreatedAt  time.Time

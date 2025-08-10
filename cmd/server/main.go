@@ -8,10 +8,10 @@ import (
 )
 
 func main() {
-	gormDB := db.Connect()
+	pool := db.Connect()
 
 	r := gin.Default()
-	handlers.RegisterRoutes(r, gormDB)
+	handlers.RegisterRoutes(r, pool)
 
 	r.Run(":8080")
 }

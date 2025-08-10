@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
-	r.POST("/auth/register", register(db))
-	r.POST("/auth/login", login(db))
+func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
+	r.POST("/auth/register", register(pool))
+	r.POST("/auth/login", login(pool))
 
 	authG := r.Group("/api")
 	authG.Use(func(c *gin.Context) {
@@ -32,12 +32,12 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		c.Next()
 	})
 
-	authG.POST("/offers", createOffer(db))
-	authG.GET("/offers", listOffers(db))
+	authG.POST("/offers", createOffer(pool))
+	authG.GET("/offers", listOffers(pool))
 
-	authG.POST("/services", createService(db))
-	authG.GET("/services", listServices(db))
+	authG.POST("/services", createService(pool))
+	authG.GET("/services", listServices(pool))
 
-	authG.POST("/favorites", addFavorite(db))
-	authG.GET("/favorites", listFavorites(db))
+	authG.POST("/favorites", addFavorite(pool))
+	authG.GET("/favorites", listFavorites(pool))
 }

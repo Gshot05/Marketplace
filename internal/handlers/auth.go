@@ -1,18 +1,18 @@
 package handlers
 
 import (
-	"errors"
-	"net/mail"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 
 	"marketplace/internal/auth"
 	"marketplace/internal/model"
+	"marketplace/internal/utils"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
-func register(db *gorm.DB) gin.HandlerFunc {
+func register(pool *pgxpool.Pool) gin.HandlerFunc {
 	type req struct {
 		Email,
 		Password,
@@ -26,12 +26,12 @@ func register(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		if err := validateEmail(r.Email); err != nil {
+		if err := utils.ValidateEmail(r.Email); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := validateName(r.Name); err != nil {
+		if err := utils.ValidateName(r.Name); err != nil {
 			c.JSON(400, gin.H{"error": "empty name"})
 			return
 		}
@@ -42,33 +42,38 @@ func register(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		hash, _ := bcrypt.GenerateFromPassword([]byte(r.Password), bcrypt.DefaultCost)
-		u := model.User{Email: r.Email,
-			PasswordHash: string(hash),
-			Role:         r.Role,
-			Name:         r.Name}
+		ctx := c.Request.Context()
 
-		if err := db.Create(&u).Error; err != nil {
+		queryBuilder := sq.Insert("users").
+			Columns("email", "password_hash", "role", "name").
+			Values(r.Email, string(hash), r.Role, r.Name).
+			Suffix("RETURNING id").
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "internal server error"})
+			return
+		}
+
+		var newUserID int64
+		err = pool.QueryRow(ctx, sql, args...).Scan(&newUserID)
+		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		token, _ := auth.GenerateToken(u.ID, u.Role)
+
+		token, err := auth.GenerateToken(uint(newUserID), r.Role)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "token generation failed"})
+			return
+		}
+
 		c.JSON(200, gin.H{"token": token})
 	}
 }
 
-func validateEmail(email string) error {
-	_, err := mail.ParseAddress(email)
-	return err
-}
-
-func validateName(name string) error {
-	if name == "" || name == " " {
-		return errors.New("name cannot be empty")
-	}
-	return nil
-}
-
-func login(db *gorm.DB) gin.HandlerFunc {
+func login(pool *pgxpool.Pool) gin.HandlerFunc {
 	type req struct {
 		Email,
 		Password string
@@ -80,17 +85,36 @@ func login(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		ctx := c.Request.Context()
+		queryBuilder := sq.Select("email", "password_hash").
+			From("users").
+			Where(sq.Eq{"email": r.Email}).
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "internal server error"})
+			return
+		}
+
 		var u model.User
-		if err := db.Where("email = ?", r.Email).First(&u).Error; err != nil {
-			c.JSON(401, gin.H{"error": "no user"})
+		err = pool.QueryRow(ctx, sql, args...).Scan(&u.Email, &u.PasswordHash)
+		if err != nil {
+			c.JSON(401, gin.H{"error": "bad log or password"})
 			return
 		}
 
 		if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(r.Password)) != nil {
-			c.JSON(401, gin.H{"error": "bad creds"})
+			c.JSON(401, gin.H{"error": "bad log or password"})
 			return
 		}
-		token, _ := auth.GenerateToken(u.ID, u.Role)
+
+		token, err := auth.GenerateToken(u.ID, u.Role)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "token generation failed"})
+			return
+		}
+
 		c.JSON(200, gin.H{"token": token})
 	}
 }
