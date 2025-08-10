@@ -32,7 +32,7 @@ func register(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		if err := utils.ValidateName(r.Name); err != nil {
-			c.JSON(400, gin.H{"error": "empty name"})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
