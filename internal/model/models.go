@@ -1,14 +1,11 @@
 package model
 
-import "time"
-
 type User struct {
 	ID           uint
 	Email        string
 	PasswordHash string
 	Role         string // customer | performer
 	Name         string
-	CreatedAt    time.Time
 }
 
 type Offer struct {
@@ -17,7 +14,6 @@ type Offer struct {
 	Title       string
 	Description string
 	Price       float64
-	CreatedAt   time.Time
 }
 
 type Service struct {
@@ -26,12 +22,10 @@ type Service struct {
 	Title       string
 	Description string
 	Price       float64
-	CreatedAt   time.Time
 }
 
 type Favorite struct {
 	ID         uint
 	CustomerID uint
 	ServiceID  uint
-	CreatedAt  time.Time
 }
