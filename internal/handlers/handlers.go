@@ -247,9 +247,16 @@ func listFavorites(pool *pgxpool.Pool) gin.HandlerFunc {
 		uid := c.GetUint("user_id")
 		ctx := c.Request.Context()
 
-		queryBuilder := sq.Select("id", "customer_id", "service_id").
-			From("favorites").
-			Where(sq.Eq{"customer_id": uid}).
+		queryBuilder := sq.Select(
+			"f.id",
+			"u.name AS customer_name",
+			"s.title AS service_title",
+			"s.description AS service_description",
+		).
+			From("favorites f").
+			Join("users u ON f.customer_id = u.id").
+			Join("services s ON f.service_id = s.id").
+			Where(sq.Eq{"f.customer_id": uid}).
 			PlaceholderFormat(sq.Dollar)
 
 		sql, args, err := queryBuilder.ToSql()
@@ -265,12 +272,11 @@ func listFavorites(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var favs []model.Favorite
+		var favs []model.FavoriteInfo
 		for rows.Next() {
-			var f model.Favorite
-			if err := rows.Scan(&f.ID,
-				&f.CustomerID,
-				&f.ServiceID); err != nil {
+			var f model.FavoriteInfo
+			err := rows.Scan(&f.ID, &f.CustomerName, &f.ServiceTitle, &f.ServiceDescription)
+			if err != nil {
 				c.JSON(500, gin.H{"error": "error scanning row"})
 				return
 			}
