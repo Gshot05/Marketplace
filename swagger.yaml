@@ -272,9 +272,6 @@ components:
         price:
           type: number
           format: float
-        created_at:
-          type: string
-          format: date-time
 
     Service:
       type: object
@@ -290,9 +287,7 @@ components:
         price:
           type: number
           format: float
-        created_at:
-          type: string
-          format: date-time
+
 
     Favorite:
       type: object
@@ -303,9 +298,6 @@ components:
           type: integer
         service_id:
           type: integer
-        created_at:
-          type: string
-          format: date-time
 
   securitySchemes:
     bearerAuth:

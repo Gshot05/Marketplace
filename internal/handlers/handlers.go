@@ -213,7 +213,6 @@ func addFavorite(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		// Вставляем новый favorite
 		queryBuilder := sq.Insert("favorites").
 			Columns("customer_id", "service_id").
 			Values(uid, r.ServiceID).
