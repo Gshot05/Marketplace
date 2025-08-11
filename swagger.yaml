@@ -26,34 +26,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: user@example.com
-                password:
-                  type: string
-                  example: securePassword123
-                role:
-                  type: string
-                  enum: [customer, performer]
-                  example: customer
-                name:
-                  type: string
-                  example: Иван Иванов
-              required: [email, password, role]
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         '200':
           description: Успешная регистрация
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: JWT токен
+                $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Неверные входные данные
         '500':
@@ -68,27 +48,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: user@example.com
-                password:
-                  type: string
-                  example: securePassword123
-              required: [email, password]
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
           description: Успешная аутентификация
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: JWT токен
+                $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Неверные учетные данные
 
@@ -103,19 +70,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: Нужен дизайн логотипа
-                description:
-                  type: string
-                  example: Требуется разработать логотип для стартапа
-                price:
-                  type: number
-                  format: float
-                  example: 5000.50
-              required: [title, description, price]
+              $ref: '#/components/schemas/CreateOfferRequest'
       responses:
         '200':
           description: Созданное предложение
@@ -128,37 +83,17 @@ paths:
         '500':
           description: Ошибка сервера
 
-  /api/offers/{id}:
     patch:
       tags: [offers]
       summary: Обновить предложение (только владелец)
       security:
         - bearerAuth: []
-      parameters:
-        - name: id
-          required: true
-          in: path
-          schema:
-            type: integer
-          description: ID предложения
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: Обновленный дизайн логотипа
-                description:
-                  type: string
-                  example: Обновленное описание для дизайна логотипа
-                price:
-                  type: number
-                  format: float
-                  example: 5500.00
-              required: [title, description, price]
+              $ref: '#/components/schemas/UpdateOfferRequest'
       responses:
         '200':
           description: Обновленное предложение
@@ -172,6 +107,8 @@ paths:
           description: Нет прав на обновление
         '404':
           description: Предложение не найдено
+        '500':
+          description: Ошибка сервера
 
     get:
       tags: [offers]
@@ -188,6 +125,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Offer'
 
+  /api/offers/{id}:
     delete:
       tags: [offers]
       summary: Удалить предложение (только владелец)
@@ -226,19 +164,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: Дизайн логотипа
-                description:
-                  type: string
-                  example: Профессиональный дизайн логотипа для вашего бренда
-                price:
-                  type: number
-                  format: float
-                  example: 5000.50
-              required: [title, description, price]
+              $ref: '#/components/schemas/CreateServiceRequest'
       responses:
         '200':
           description: Созданная услуга
@@ -251,36 +177,17 @@ paths:
         '500':
           description: Ошибка сервера
 
-  /api/services/{id}:
     patch:
       tags: [services]
       summary: Обновить услугу (только владелец)
       security:
         - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: Профессиональный дизайн логотипов
-                description:
-                  type: string
-                  example: Создание уникальных логотипов для бизнеса
-                price:
-                  type: number
-                  format: float
-                  example: 6000.00
-              required: [title, description, price]
+              $ref: '#/components/schemas/UpdateServiceRequest'
       responses:
         '200':
           description: Обновленная услуга
@@ -294,6 +201,8 @@ paths:
           description: Нет прав на обновление
         '404':
           description: Услуга не найдена
+        '500':
+          description: Ошибка сервера
 
     get:
       tags: [services]
@@ -310,6 +219,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Service'
 
+  /api/services/{id}:
     delete:
       tags: [services]
       summary: Удалить услугу (только владелец)
@@ -348,12 +258,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                service_id:
-                  type: integer
-                  example: 1
-              required: [service_id]
+              $ref: '#/components/schemas/AddFavoriteRequest'
       responses:
         '200':
           description: Добавлено в избранное
@@ -393,12 +298,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                service_id:
-                  type: integer
-                  example: 1
-              required: [service_id]
+              $ref: '#/components/schemas/RemoveFavoriteRequest'
       responses:
         '200':
           description: Успешное удаление
@@ -416,6 +316,148 @@ paths:
 
 components:
   schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Иван Иванов
+          required: [email, password, role]
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          example: securePassword123
+        role:
+          type: string
+          enum: [customer, performer]
+          example: customer
+        
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          example: securePassword123
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT токен
+
+    CreateOfferRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Нужен дизайн логотипа
+        description:
+          type: string
+          example: Требуется разработать логотип для стартапа
+        price:
+          type: number
+          format: float
+          example: 5000.50
+      required: [title, description, price]
+
+    UpdateOfferRequest:
+      type: object
+      properties:
+        offerID:
+          type: integer
+          example: 1
+        title:
+          type: string
+          nullable: true
+          example: Обновленный заголовок
+        description:
+          type: string
+          nullable: true
+          example: Новое описание
+        price:
+          type: number
+          format: float
+          nullable: true
+          example: 5500.00
+      required: [offerID]
+
+    RemoveOfferRequest:
+      type: object
+      properties:
+        offerID:
+          type: integer
+          example: 1
+      required: [offerID]
+
+    CreateServiceRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Дизайн логотипа
+        description:
+          type: string
+          example: Профессиональный дизайн логотипа для вашего бренда
+        price:
+          type: number
+          format: float
+          example: 5000.50
+      required: [title, description, price]
+
+    UpdateServiceRequest:
+      type: object
+      properties:
+        serviceID:
+          type: integer
+          example: 1
+        title:
+          type: string
+          nullable: true
+          example: Профессиональный дизайн
+        description:
+          type: string
+          nullable: true
+          example: Обновленные условия
+        price:
+          type: number
+          format: float
+          nullable: true
+          example: 6000.00
+      required: [serviceID]
+
+    RemoveServiceRequest:
+      type: object
+      properties:
+        serviceID:
+          type: integer
+          example: 1
+      required: [serviceID]
+
+    AddFavoriteRequest:
+      type: object
+      properties:
+        serviceID:
+          type: integer
+          example: 1
+      required: [service_id]
+
+    RemoveFavoriteRequest:
+      type: object
+      properties:
+        serviceID:
+          type: integer
+          example: 1
+      required: [service_id]
+
     User:
       type: object
       properties:
@@ -462,18 +504,18 @@ components:
           type: number
           format: float
 
-
     Favorite:
       type: object
       properties:
         id:
           type: integer
-        customer_name:
+        customer_id:
+          type: integer
+        service_id:
+          type: integer
+        created_at:
           type: string
-        service_title:
-          type: string
-        service_description:
-          type: string
+          format: date-time
 
     FavoriteInfo:
       type: object
@@ -486,7 +528,6 @@ components:
           type: string
         service_description:
           type: string
-          
           
   securitySchemes:
     bearerAuth:

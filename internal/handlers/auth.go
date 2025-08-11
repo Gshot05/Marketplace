@@ -100,12 +100,12 @@ func login(pool *pgxpool.Pool) gin.HandlerFunc {
 		var u model.User
 		err = pool.QueryRow(ctx, sql, args...).Scan(&u.Email, &u.PasswordHash)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "bad log or password"})
+			c.JSON(401, gin.H{"error": "Неверный логин или пароль"})
 			return
 		}
 
 		if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(r.Password)) != nil {
-			c.JSON(401, gin.H{"error": "bad log or password"})
+			c.JSON(401, gin.H{"error": "Неверный логин или пароль"})
 			return
 		}
 

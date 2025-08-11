@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"strconv"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx"
@@ -63,77 +61,59 @@ func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
-	type req struct {
+	type request struct {
+		OfferID     uint    `json:"offerID"`
 		Title       string  `json:"title"`
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
 	}
 
 	return func(c *gin.Context) {
-		offerIDStr := c.Param("id")
-		offerID, err := strconv.ParseUint(offerIDStr, 10, 32)
-		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid offer ID format"})
-			return
-		}
-
-		uid, ok := utils.CheckCustomerRole(c)
+		customerID, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
+		req, ok := utils.BindJSON[request](c)
 		if !ok {
 			return
 		}
 
 		ctx := c.Request.Context()
 
-		var offerCustomerID uint
-		err = pool.QueryRow(ctx,
-			"SELECT customer_id FROM offers WHERE id = $1",
-			uint(offerID),
-		).Scan(&offerCustomerID)
-
-		switch {
-		case err == pgx.ErrNoRows:
-			c.JSON(404, gin.H{"error": "offer not found"})
-			return
-		case err != nil:
-			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
-			return
-		case offerCustomerID != uid:
-			c.JSON(403, gin.H{"error": "Вы можете изменять только свои офферы"})
-			return
-		}
-
 		queryBuilder := sq.Update("offers").
-			Set("title", r.Title).
-			Set("description", r.Description).
-			Set("price", r.Price).
-			Where(sq.Eq{"id": uint(offerID)}).
+			SetMap(map[string]interface{}{
+				"title":       req.Title,
+				"description": req.Description,
+				"price":       req.Price,
+			}).
+			Where(sq.Eq{
+				"id":          req.OfferID,
+				"customer_id": customerID,
+			}).
 			Suffix("RETURNING id, customer_id, title, description, price").
 			PlaceholderFormat(sq.Dollar)
 
 		sql, args, err := queryBuilder.ToSql()
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to build SQL query: " + err.Error()})
+			c.JSON(500, gin.H{"error": "failed to build query"})
 			return
 		}
 
-		var updatedOffer model.Offer
+		var updated model.Offer
 		if err := pool.QueryRow(ctx, sql, args...).Scan(
-			&updatedOffer.ID,
-			&updatedOffer.CustomerID,
-			&updatedOffer.Title,
-			&updatedOffer.Description,
-			&updatedOffer.Price,
+			&updated.ID, &updated.CustomerID, &updated.Title,
+			&updated.Description, &updated.Price,
 		); err != nil {
-			c.JSON(500, gin.H{"error": "Ошибка при обновлении: " + err.Error()})
+			if err == pgx.ErrNoRows {
+				c.JSON(404, gin.H{"error": "Оффер не найден или принадлежит не вам!"})
+				return
+			}
+			c.JSON(500, gin.H{"error": "database error"})
 			return
 		}
 
-		c.JSON(200, updatedOffer)
+		c.JSON(200, updated)
 	}
 }
 
@@ -215,6 +195,11 @@ func listOffers(pool *pgxpool.Pool) gin.HandlerFunc {
 			offers = append(offers, o)
 		}
 
+		if offers == nil {
+			c.String(404, "Офферов пока нет:(")
+			return
+		}
+
 		c.JSON(200, offers)
 	}
 }
@@ -270,77 +255,62 @@ func createService(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
-	type req struct {
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Price       float64 `json:"price"`
+	type request struct {
+		ServiceID   uint    `json:"serviceID" binding:"required"`
+		Title       string  `json:"title,omitempty"`
+		Description string  `json:"description,omitempty"`
+		Price       float64 `json:"price,omitempty"`
 	}
 
 	return func(c *gin.Context) {
-		serviceIDStr := c.Param("id")
-		serviceID, err := strconv.ParseUint(serviceIDStr, 10, 32)
-		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid service ID format"})
-			return
-		}
-
-		uid, ok := utils.CheckPerformerRole(c)
+		performerID, ok := utils.CheckPerformerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
+		req, ok := utils.BindJSON[request](c)
 		if !ok {
 			return
 		}
 
 		ctx := c.Request.Context()
 
-		var servicePerformerID uint
-		err = pool.QueryRow(ctx,
-			"SELECT performer_id FROM services WHERE id = $1",
-			uint(serviceID),
-		).Scan(&servicePerformerID)
-
-		switch {
-		case err == pgx.ErrNoRows:
-			c.JSON(404, gin.H{"error": "service not found"})
-			return
-		case err != nil:
-			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
-			return
-		case servicePerformerID != uid:
-			c.JSON(403, gin.H{"error": "Вы можете обновлять только свои сервисы!"})
-			return
-		}
-
 		queryBuilder := sq.Update("services").
-			Set("title", r.Title).
-			Set("description", r.Description).
-			Set("price", r.Price).
-			Where(sq.Eq{"id": uint(serviceID)}).
+			SetMap(map[string]interface{}{
+				"title":       req.Title,
+				"description": req.Description,
+				"price":       req.Price,
+			}).
+			Where(sq.Eq{
+				"id":           req.ServiceID,
+				"performer_id": performerID,
+			}).
 			Suffix("RETURNING id, performer_id, title, description, price").
 			PlaceholderFormat(sq.Dollar)
 
 		sql, args, err := queryBuilder.ToSql()
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to build SQL query: " + err.Error()})
+			c.JSON(500, gin.H{"error": "failed to build query"})
 			return
 		}
 
-		var updatedService model.Service
+		var updated model.Service
 		if err := pool.QueryRow(ctx, sql, args...).Scan(
-			&updatedService.ID,
-			&updatedService.PerformerID,
-			&updatedService.Title,
-			&updatedService.Description,
-			&updatedService.Price,
+			&updated.ID,
+			&updated.PerformerID,
+			&updated.Title,
+			&updated.Description,
+			&updated.Price,
 		); err != nil {
-			c.JSON(500, gin.H{"error": "failed to update service: " + err.Error()})
+			if err == pgx.ErrNoRows {
+				c.JSON(404, gin.H{"error": "service not found or access denied"})
+				return
+			}
+			c.JSON(500, gin.H{"error": "database error"})
 			return
 		}
 
-		c.JSON(200, updatedService)
+		c.JSON(200, updated)
 	}
 }
 
@@ -419,6 +389,10 @@ func listServices(pool *pgxpool.Pool) gin.HandlerFunc {
 				return
 			}
 			services = append(services, s)
+		}
+		if services == nil {
+			c.String(400, "Услуг пока нет:(")
+			return
 		}
 
 		c.JSON(200, services)
