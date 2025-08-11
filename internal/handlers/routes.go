@@ -20,6 +20,7 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	authG.POST("/services", createService(pool))
 	authG.GET("/services", listServices(pool))
+	authG.PATCH("/services/:id", updateService(pool))
 
 	authG.POST("/favorites", addFavorite(pool))
 	authG.GET("/favorites", listFavorites(pool))

@@ -1,30 +1,31 @@
 package handlers
 
 import (
+	"strconv"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"marketplace/internal/model"
+	"marketplace/internal/utils"
 )
 
 func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 	type req struct {
-		Title, Description string
-		Price              float64
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Price       float64 `json:"price"`
 	}
 	return func(c *gin.Context) {
-		uid := c.GetUint("user_id")
-		role := c.GetString("role")
-		if role != "customer" {
-			c.JSON(403, gin.H{"error": "only customers can create offers"})
+		uid, ok := utils.CheckCustomerRole(c)
+		if !ok {
 			return
 		}
 
-		var r req
-		if err := c.BindJSON(&r); err != nil {
-			c.JSON(400, gin.H{"error": "bad json"})
+		r, ok := utils.BindJSON[req](c)
+		if !ok {
 			return
 		}
 
@@ -63,41 +64,45 @@ func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 
 func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 	type req struct {
-		ID          uint
-		Title       string
-		Description string
-		Price       float64
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Price       float64 `json:"price"`
 	}
 
 	return func(c *gin.Context) {
-		uid := c.GetUint("user_id")
-		role := c.GetString("role")
-		if role != "customer" {
-			c.JSON(403, gin.H{"error": "only customers can update offers"})
+		offerIDStr := c.Param("id")
+		offerID, err := strconv.ParseUint(offerIDStr, 10, 32)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "invalid offer ID format"})
 			return
 		}
 
-		var r req
-		if err := c.BindJSON(&r); err != nil {
-			c.JSON(400, gin.H{"error": "bad json"})
+		uid, ok := utils.CheckCustomerRole(c)
+		if !ok {
+			return
+		}
+
+		r, ok := utils.BindJSON[req](c)
+		if !ok {
 			return
 		}
 
 		ctx := c.Request.Context()
 
 		var offerCustomerID uint
-		err := pool.QueryRow(ctx,
-			"SELECT customer_id FROM offers WHERE id = $1", r.ID).Scan(&offerCustomerID)
+		err = pool.QueryRow(ctx,
+			"SELECT customer_id FROM offers WHERE id = $1",
+			uint(offerID),
+		).Scan(&offerCustomerID)
 
-		if err == pgx.ErrNoRows {
+		switch {
+		case err == pgx.ErrNoRows:
 			c.JSON(404, gin.H{"error": "offer not found"})
 			return
-		} else if err != nil {
-			c.JSON(500, gin.H{"error": "database error"})
+		case err != nil:
+			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
 			return
-		}
-
-		if offerCustomerID != uid {
+		case offerCustomerID != uid:
 			c.JSON(403, gin.H{"error": "you can only update your own offers"})
 			return
 		}
@@ -106,27 +111,25 @@ func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			Set("title", r.Title).
 			Set("description", r.Description).
 			Set("price", r.Price).
-			Where(sq.Eq{"id": r.ID}).
+			Where(sq.Eq{"id": uint(offerID)}).
 			Suffix("RETURNING id, customer_id, title, description, price").
 			PlaceholderFormat(sq.Dollar)
 
 		sql, args, err := queryBuilder.ToSql()
 		if err != nil {
-			c.JSON(500, gin.H{"error": "internal server error"})
+			c.JSON(500, gin.H{"error": "failed to build SQL query: " + err.Error()})
 			return
 		}
 
 		var updatedOffer model.Offer
-		err = pool.QueryRow(ctx, sql, args...).Scan(
+		if err := pool.QueryRow(ctx, sql, args...).Scan(
 			&updatedOffer.ID,
 			&updatedOffer.CustomerID,
 			&updatedOffer.Title,
 			&updatedOffer.Description,
 			&updatedOffer.Price,
-		)
-
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+		); err != nil {
+			c.JSON(500, gin.H{"error": "failed to update offer: " + err.Error()})
 			return
 		}
 
@@ -172,20 +175,18 @@ func listOffers(pool *pgxpool.Pool) gin.HandlerFunc {
 
 func createService(pool *pgxpool.Pool) gin.HandlerFunc {
 	type req struct {
-		Title, Description string
-		Price              float64
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Price       float64 `json:"price"`
 	}
 	return func(c *gin.Context) {
-		uid := c.GetUint("user_id")
-		role := c.GetString("role")
-		if role != "performer" {
-			c.JSON(403, gin.H{"error": "only performers can create services"})
+		uid, ok := utils.CheckPerformerRole(c)
+		if !ok {
 			return
 		}
 
-		var r req
-		if err := c.BindJSON(&r); err != nil {
-			c.JSON(400, gin.H{"error": "bad json"})
+		r, ok := utils.BindJSON[req](c)
+		if !ok {
 			return
 		}
 
@@ -219,6 +220,80 @@ func createService(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.JSON(200, s)
+	}
+}
+
+func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
+	type req struct {
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Price       float64 `json:"price"`
+	}
+
+	return func(c *gin.Context) {
+		serviceIDStr := c.Param("id")
+		serviceID, err := strconv.ParseUint(serviceIDStr, 10, 32)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "invalid offer ID format"})
+			return
+		}
+
+		uid, ok := utils.CheckPerformerRole(c)
+		if !ok {
+			return
+		}
+
+		r, ok := utils.BindJSON[req](c)
+		if !ok {
+			return
+		}
+
+		ctx := c.Request.Context()
+
+		var servicePerformerID uint
+		err = pool.QueryRow(ctx,
+			"SELECT performer_id FROM services WHERE id = $1",
+			uint(serviceID),
+		).Scan(&servicePerformerID)
+
+		switch {
+		case err == pgx.ErrNoRows:
+			c.JSON(404, gin.H{"error": "offer not found"})
+			return
+		case err != nil:
+			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
+			return
+		case servicePerformerID != uid:
+			c.JSON(403, gin.H{"error": "you can only update your own services"})
+			return
+		}
+
+		queryBuilder := sq.Update("services").
+			Set("title", r.Title).
+			Set("description", r.Description).
+			Set("price", r.Price).
+			Where(sq.Eq{"id": uint(serviceID)}).
+			Suffix("RETURNING id, performer_id, title, description, price").
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to build SQL query: " + err.Error()})
+			return
+		}
+
+		var updatedService model.Service
+		if err := pool.QueryRow(ctx, sql, args...).Scan(
+			&updatedService.PerformerID,
+			&updatedService.Title,
+			&updatedService.Description,
+			&updatedService.Price,
+		); err != nil {
+			c.JSON(500, gin.H{"error": "failed to update service: " + err.Error()})
+			return
+		}
+
+		c.JSON(200, updatedService)
 	}
 }
 
@@ -261,16 +336,13 @@ func addFavorite(pool *pgxpool.Pool) gin.HandlerFunc {
 	type req struct{ ServiceID uint }
 
 	return func(c *gin.Context) {
-		uid := c.GetUint("user_id")
-		role := c.GetString("role")
-		if role != "customer" {
-			c.JSON(403, gin.H{"error": "only customers can favorite"})
+		uid, ok := utils.CheckCustomerRole(c)
+		if !ok {
 			return
 		}
 
-		var r req
-		if err := c.BindJSON(&r); err != nil {
-			c.JSON(400, gin.H{"error": "bad json"})
+		r, ok := utils.BindJSON[req](c)
+		if !ok {
 			return
 		}
 
