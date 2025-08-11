@@ -11,6 +11,11 @@ require (
 )
 
 require (
+	github.com/jackc/pgx v3.6.2+incompatible // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+)
+
+require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect

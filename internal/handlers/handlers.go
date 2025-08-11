@@ -3,6 +3,7 @@ package handlers
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"marketplace/internal/model"
@@ -57,6 +58,79 @@ func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.JSON(200, o)
+	}
+}
+
+func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
+	type req struct {
+		ID          uint
+		Title       string
+		Description string
+		Price       float64
+	}
+
+	return func(c *gin.Context) {
+		uid := c.GetUint("user_id")
+		role := c.GetString("role")
+		if role != "customer" {
+			c.JSON(403, gin.H{"error": "only customers can update offers"})
+			return
+		}
+
+		var r req
+		if err := c.BindJSON(&r); err != nil {
+			c.JSON(400, gin.H{"error": "bad json"})
+			return
+		}
+
+		ctx := c.Request.Context()
+
+		var offerCustomerID uint
+		err := pool.QueryRow(ctx,
+			"SELECT customer_id FROM offers WHERE id = $1", r.ID).Scan(&offerCustomerID)
+
+		if err == pgx.ErrNoRows {
+			c.JSON(404, gin.H{"error": "offer not found"})
+			return
+		} else if err != nil {
+			c.JSON(500, gin.H{"error": "database error"})
+			return
+		}
+
+		if offerCustomerID != uid {
+			c.JSON(403, gin.H{"error": "you can only update your own offers"})
+			return
+		}
+
+		queryBuilder := sq.Update("offers").
+			Set("title", r.Title).
+			Set("description", r.Description).
+			Set("price", r.Price).
+			Where(sq.Eq{"id": r.ID}).
+			Suffix("RETURNING id, customer_id, title, description, price").
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "internal server error"})
+			return
+		}
+
+		var updatedOffer model.Offer
+		err = pool.QueryRow(ctx, sql, args...).Scan(
+			&updatedOffer.ID,
+			&updatedOffer.CustomerID,
+			&updatedOffer.Title,
+			&updatedOffer.Description,
+			&updatedOffer.Price,
+		)
+
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, updatedOffer)
 	}
 }
 
