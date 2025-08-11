@@ -188,6 +188,33 @@ paths:
                 items:
                   $ref: '#/components/schemas/Offer'
 
+    delete:
+      tags: [offers]
+      summary: Удалить предложение (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID предложения
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Успешно!"
+        '403':
+          description: Нет прав на удаление
+        '404':
+          description: Предложение не найдено
+        '500':
+          description: Ошибка сервера
+
   /api/services:
     post:
       tags: [services]
@@ -283,6 +310,33 @@ paths:
                 items:
                   $ref: '#/components/schemas/Service'
 
+    delete:
+      tags: [services]
+      summary: Удалить услугу (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID услуги
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Успешно!"
+        '403':
+          description: Нет прав на удаление
+        '404':
+          description: Услуга не найдена
+        '500':
+          description: Ошибка сервера
+
   /api/favorites:
     post:
       tags: [favorites]
@@ -328,6 +382,37 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Favorite'
+
+    delete:
+      tags: [favorites]
+      summary: Удалить из избранного (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service_id:
+                  type: integer
+                  example: 1
+              required: [service_id]
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Успешно!"
+        '403':
+          description: Нет прав на удаление
+        '404':
+          description: Запись не найдена
+        '500':
+          description: Ошибка сервера
 
 components:
   schemas:

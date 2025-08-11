@@ -103,7 +103,7 @@ func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
 			return
 		case offerCustomerID != uid:
-			c.JSON(403, gin.H{"error": "you can only update your own offers"})
+			c.JSON(403, gin.H{"error": "Вы можете изменять только свои офферы"})
 			return
 		}
 
@@ -129,11 +129,57 @@ func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			&updatedOffer.Description,
 			&updatedOffer.Price,
 		); err != nil {
-			c.JSON(500, gin.H{"error": "failed to update offer: " + err.Error()})
+			c.JSON(500, gin.H{"error": "Ошибка при обновлении: " + err.Error()})
 			return
 		}
 
 		c.JSON(200, updatedOffer)
+	}
+}
+
+func deleteOffer(pool *pgxpool.Pool) gin.HandlerFunc {
+	type request struct {
+		OfferID uint `json:"offerID"`
+	}
+
+	return func(c *gin.Context) {
+		userID, ok := utils.CheckCustomerRole(c)
+		if !ok {
+			return
+		}
+
+		req, ok := utils.BindJSON[request](c)
+		if !ok {
+			return
+		}
+
+		ctx := c.Request.Context()
+
+		queryBuilder := sq.Delete("offers").
+			Where(sq.Eq{
+				"id":          req.OfferID,
+				"customer_id": userID,
+			}).
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to build SQL query"})
+			return
+		}
+
+		result, err := pool.Exec(ctx, sql, args...)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "database error"})
+			return
+		}
+
+		if result.RowsAffected() == 0 {
+			c.String(404, "Оффер не найден или вам не принадлежит")
+			return
+		}
+
+		c.String(200, "Успешно!")
 	}
 }
 
@@ -264,7 +310,7 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
 			return
 		case servicePerformerID != uid:
-			c.JSON(403, gin.H{"error": "you can only update your own services"})
+			c.JSON(403, gin.H{"error": "Вы можете обновлять только свои сервисы!"})
 			return
 		}
 
@@ -295,6 +341,52 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.JSON(200, updatedService)
+	}
+}
+
+func deleteService(pool *pgxpool.Pool) gin.HandlerFunc {
+	type request struct {
+		ServiceID uint `json:"ServiceID"`
+	}
+
+	return func(c *gin.Context) {
+		userID, ok := utils.CheckPerformerRole(c)
+		if !ok {
+			return
+		}
+
+		req, ok := utils.BindJSON[request](c)
+		if !ok {
+			return
+		}
+
+		ctx := c.Request.Context()
+
+		queryBuilder := sq.Delete("services").
+			Where(sq.Eq{
+				"id":           req.ServiceID,
+				"performer_id": userID,
+			}).
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to build SQL query"})
+			return
+		}
+
+		result, err := pool.Exec(ctx, sql, args...)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "database error"})
+			return
+		}
+
+		if result.RowsAffected() == 0 {
+			c.String(404, "Услуга не найдена или вам не принадлежит")
+			return
+		}
+
+		c.String(200, "Успешно!")
 	}
 }
 
@@ -356,7 +448,7 @@ func addFavorite(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 		if !exists {
-			c.JSON(404, gin.H{"error": "service not found"})
+			c.JSON(404, gin.H{"error": "Услуга не найдена"})
 			return
 		}
 
@@ -431,5 +523,51 @@ func listFavorites(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.JSON(200, favs)
+	}
+}
+
+func deleteFavorite(pool *pgxpool.Pool) gin.HandlerFunc {
+	type request struct {
+		ServiceID uint `json:"serviceID"`
+	}
+
+	return func(c *gin.Context) {
+		customerID, ok := utils.CheckCustomerRole(c)
+		if !ok {
+			return
+		}
+
+		req, ok := utils.BindJSON[request](c)
+		if !ok {
+			return
+		}
+
+		ctx := c.Request.Context()
+
+		queryBuilder := sq.Delete("favorites").
+			Where(sq.Eq{
+				"customer_id": customerID,
+				"service_id":  req.ServiceID,
+			}).
+			PlaceholderFormat(sq.Dollar)
+
+		sql, args, err := queryBuilder.ToSql()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to build SQL query: " + err.Error()})
+			return
+		}
+
+		result, err := pool.Exec(ctx, sql, args...)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
+			return
+		}
+
+		if result.RowsAffected() == 0 {
+			c.JSON(404, gin.H{"error": "Избранное не найдено"})
+			return
+		}
+
+		c.String(200, "Успешно!")
 	}
 }

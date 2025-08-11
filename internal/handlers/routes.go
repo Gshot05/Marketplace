@@ -17,11 +17,14 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	authG.POST("/offers", createOffer(pool))
 	authG.GET("/offers", listOffers(pool))
 	authG.PATCH("/offers/:id", updateOffer(pool))
+	authG.DELETE("/offers", deleteOffer(pool))
 
 	authG.POST("/services", createService(pool))
 	authG.GET("/services", listServices(pool))
 	authG.PATCH("/services/:id", updateService(pool))
+	authG.DELETE("/services", deleteService(pool))
 
 	authG.POST("/favorites", addFavorite(pool))
 	authG.GET("/favorites", listFavorites(pool))
+	authG.DELETE("/favorites", deleteFavorite(pool))
 }

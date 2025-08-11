@@ -14,7 +14,7 @@ func ValidateEmail(email string) error {
 
 func ValidateName(name string) error {
 	if name == "" || name == " " {
-		return errors.New("name cannot be empty")
+		return errors.New("Имя не может быть пустым")
 	}
 	return nil
 }
@@ -24,7 +24,7 @@ func CheckCustomerRole(c *gin.Context) (uint, bool) {
 	role := c.GetString("role")
 
 	if role != "customer" {
-		c.JSON(403, gin.H{"error": "only customers can perform this action"})
+		c.JSON(403, gin.H{"error": "Только заказчики имеют доступ к этой функции"})
 		return 0, false
 	}
 
@@ -36,7 +36,7 @@ func CheckPerformerRole(c *gin.Context) (uint, bool) {
 	role := c.GetString("role")
 
 	if role != "performer" {
-		c.JSON(403, gin.H{"error": "only performers can perform this action"})
+		c.JSON(403, gin.H{"error": "Только исполнители имеют доступ к этой функции"})
 		return 0, false
 	}
 
