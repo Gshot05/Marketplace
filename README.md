@@ -2,10 +2,9 @@
 
 ## Что внутри
 - Gin HTTP API
-- GORM + PostgreSQL
+- PGXpool + Squirrel + PostgreSQL
 - JWT для аутентификации
 - Favorites, Offers, Services
-- Chats: create chat endpoint + authenticated WebSocket; incoming messages are stored in DB
 
 ## Быстрый старт (docker)
 1. Склонируй/распакуй проект
