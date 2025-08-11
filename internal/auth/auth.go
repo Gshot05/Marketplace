@@ -33,6 +33,9 @@ func ParseToken(tokenStr string) (*Claims, error) {
 		return jwtKey, nil
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, errors.New("token expired")
+		}
 		return nil, err
 	}
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
