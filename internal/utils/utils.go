@@ -35,8 +35,8 @@ func CheckPerformerRole(c *gin.Context) (uint, bool) {
 	uid := c.GetUint("user_id")
 	role := c.GetString("role")
 
-	if role != "customer" {
-		c.JSON(403, gin.H{"error": "only customers can perform this action"})
+	if role != "performer" {
+		c.JSON(403, gin.H{"error": "only performers can perform this action"})
 		return 0, false
 	}
 

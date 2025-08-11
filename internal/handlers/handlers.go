@@ -234,7 +234,7 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 		serviceIDStr := c.Param("id")
 		serviceID, err := strconv.ParseUint(serviceIDStr, 10, 32)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid offer ID format"})
+			c.JSON(400, gin.H{"error": "invalid service ID format"})
 			return
 		}
 
@@ -258,7 +258,7 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 
 		switch {
 		case err == pgx.ErrNoRows:
-			c.JSON(404, gin.H{"error": "offer not found"})
+			c.JSON(404, gin.H{"error": "service not found"})
 			return
 		case err != nil:
 			c.JSON(500, gin.H{"error": "database error: " + err.Error()})
@@ -284,6 +284,7 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 
 		var updatedService model.Service
 		if err := pool.QueryRow(ctx, sql, args...).Scan(
+			&updatedService.ID,
 			&updatedService.PerformerID,
 			&updatedService.Title,
 			&updatedService.Description,

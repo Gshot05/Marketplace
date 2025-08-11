@@ -128,6 +128,51 @@ paths:
         '500':
           description: Ошибка сервера
 
+  /api/offers/{id}:
+    patch:
+      tags: [offers]
+      summary: Обновить предложение (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: integer
+          description: ID предложения
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Обновленный дизайн логотипа
+                description:
+                  type: string
+                  example: Обновленное описание для дизайна логотипа
+                price:
+                  type: number
+                  format: float
+                  example: 5500.00
+              required: [title, description, price]
+      responses:
+        '200':
+          description: Обновленное предложение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Неверные данные
+        '403':
+          description: Нет прав на обновление
+        '404':
+          description: Предложение не найдено
+
     get:
       tags: [offers]
       summary: Получить список всех предложений
@@ -178,6 +223,50 @@ paths:
           description: Только для исполнителей
         '500':
           description: Ошибка сервера
+
+  /api/services/{id}:
+    patch:
+      tags: [services]
+      summary: Обновить услугу (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Профессиональный дизайн логотипов
+                description:
+                  type: string
+                  example: Создание уникальных логотипов для бизнеса
+                price:
+                  type: number
+                  format: float
+                  example: 6000.00
+              required: [title, description, price]
+      responses:
+        '200':
+          description: Обновленная услуга
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '400':
+          description: Неверные данные
+        '403':
+          description: Нет прав на обновление
+        '404':
+          description: Услуга не найдена
 
     get:
       tags: [services]
@@ -300,6 +389,19 @@ components:
           type: string
         service_description:
           type: string
+
+    FavoriteInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        customer_name:
+          type: string
+        service_title:
+          type: string
+        service_description:
+          type: string
+          
           
   securitySchemes:
     bearerAuth:
