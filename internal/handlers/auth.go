@@ -80,9 +80,8 @@ func login(pool *pgxpool.Pool) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		var r req
-		if err := c.BindJSON(&r); err != nil {
-			c.JSON(400, gin.H{"error": "bad json"})
+		r, ok := utils.BindJSON[req](c)
+		if !ok {
 			return
 		}
 

@@ -61,7 +61,7 @@ func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
-	type request struct {
+	type req struct {
 		OfferID     uint    `json:"offerID"`
 		Title       string  `json:"title"`
 		Description string  `json:"description"`
@@ -74,7 +74,7 @@ func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[request](c)
+		req, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
@@ -118,7 +118,7 @@ func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func deleteOffer(pool *pgxpool.Pool) gin.HandlerFunc {
-	type request struct {
+	type req struct {
 		OfferID uint `json:"offerID"`
 	}
 
@@ -128,7 +128,7 @@ func deleteOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[request](c)
+		req, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
@@ -255,7 +255,7 @@ func createService(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
-	type request struct {
+	type req struct {
 		ServiceID   uint    `json:"serviceID" binding:"required"`
 		Title       string  `json:"title,omitempty"`
 		Description string  `json:"description,omitempty"`
@@ -268,7 +268,7 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[request](c)
+		req, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
@@ -315,7 +315,7 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func deleteService(pool *pgxpool.Pool) gin.HandlerFunc {
-	type request struct {
+	type req struct {
 		ServiceID uint `json:"ServiceID"`
 	}
 
@@ -325,7 +325,7 @@ func deleteService(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[request](c)
+		req, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
@@ -501,7 +501,7 @@ func listFavorites(pool *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func deleteFavorite(pool *pgxpool.Pool) gin.HandlerFunc {
-	type request struct {
+	type req struct {
 		ServiceID uint `json:"serviceID"`
 	}
 
@@ -511,7 +511,7 @@ func deleteFavorite(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[request](c)
+		req, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
