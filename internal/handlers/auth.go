@@ -35,8 +35,8 @@ func register(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		if r.Role != "customer" && r.Role != "performer" {
-			c.JSON(400, gin.H{"error": "bad role"})
+		if err := utils.CheckRole(r.Role); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 

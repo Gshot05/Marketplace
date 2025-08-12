@@ -19,6 +19,13 @@ func ValidateName(name string) error {
 	return nil
 }
 
+func CheckRole(role string) error {
+	if role == "" || role == " " {
+		return errors.New("Некорректная роль")
+	}
+	return nil
+}
+
 func CheckCustomerRole(c *gin.Context) (uint, bool) {
 	uid := c.GetUint("user_id")
 	role := c.GetString("role")
