@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"marketplace/internal/auth"
 	"net/http"
 
@@ -22,9 +21,6 @@ func AuthMiddleware(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 		return
 	}
-
-	// Delete потом
-	log.Printf("AuthMiddleware: user_id=%d, role=%s", claims.UserID, claims.Role)
 
 	c.Set("user_id", claims.UserID)
 	c.Set("role", claims.Role)
