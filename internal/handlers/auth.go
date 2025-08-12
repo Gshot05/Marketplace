@@ -78,6 +78,7 @@ func login(pool *pgxpool.Pool) gin.HandlerFunc {
 		Email,
 		Password string
 	}
+
 	return func(c *gin.Context) {
 		var r req
 		if err := c.BindJSON(&r); err != nil {
@@ -86,7 +87,8 @@ func login(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		ctx := c.Request.Context()
-		queryBuilder := sq.Select("email", "password_hash").
+
+		queryBuilder := sq.Select("id", "email", "password_hash", "role").
 			From("users").
 			Where(sq.Eq{"email": r.Email}).
 			PlaceholderFormat(sq.Dollar)
@@ -98,7 +100,7 @@ func login(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		var u model.User
-		err = pool.QueryRow(ctx, sql, args...).Scan(&u.Email, &u.PasswordHash)
+		err = pool.QueryRow(ctx, sql, args...).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.Role)
 		if err != nil {
 			c.JSON(401, gin.H{"error": "Неверный логин или пароль"})
 			return
