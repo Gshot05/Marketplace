@@ -2,12 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"marketplace/internal/model"
 
 	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -72,9 +70,6 @@ func (r *ServiceRepository) Update(ctx context.Context, serviceID, performerID u
 		&service.ID, &service.PerformerID, &service.Title, &service.Description, &service.Price,
 	)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errors.New("service not found or access denied")
-		}
 		return nil, err
 	}
 
