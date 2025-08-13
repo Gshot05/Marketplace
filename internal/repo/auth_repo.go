@@ -62,7 +62,7 @@ func (r *AuthRepo) GetUserByEmail(ctx context.Context, email string) (*model.Use
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errors.New("user not found")
+			return nil, errors.New("Неверный логин или пароль!")
 		}
 		return nil, err
 	}
