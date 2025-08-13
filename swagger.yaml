@@ -36,6 +36,8 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Неверные входные данные
+        '409':
+          description: Email уже занят
         '500':
           description: Ошибка сервера
 
@@ -58,6 +60,8 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Неверные учетные данные
+        '500':
+          description: Ошибка сервера
 
   /api/offers:
     post:
@@ -80,6 +84,25 @@ paths:
                 $ref: '#/components/schemas/Offer'
         '403':
           description: Только для заказчиков
+        '500':
+          description: Ошибка сервера
+
+    get:
+      tags: [offers]
+      summary: Получить список всех предложений
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'
+        '404':
+          description: Офферов пока нет
         '500':
           description: Ошибка сервера
 
@@ -110,37 +133,20 @@ paths:
         '500':
           description: Ошибка сервера
 
-    get:
-      tags: [offers]
-      summary: Получить список всех предложений
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Список предложений
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Offer'
-
-  /api/offers/:
     delete:
       tags: [offers]
       summary: Удалить предложение (только владелец)
       security:
         - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID предложения
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteOfferRequest'
       responses:
         '200':
-          description: Успешное удаление
+          description: Успешно удалено
           content:
             text/plain:
               schema:
@@ -177,6 +183,25 @@ paths:
         '500':
           description: Ошибка сервера
 
+    get:
+      tags: [services]
+      summary: Получить список всех услуг
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список услуг
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+        '404':
+          description: Услуг пока нет
+        '500':
+          description: Ошибка сервера
+
     patch:
       tags: [services]
       summary: Обновить услугу (только владелец)
@@ -204,37 +229,20 @@ paths:
         '500':
           description: Ошибка сервера
 
-    get:
-      tags: [services]
-      summary: Получить список всех услуг
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Список услуг
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Service'
-
-  /api/services/:
     delete:
       tags: [services]
       summary: Удалить услугу (только владелец)
       security:
         - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID услуги
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteServiceRequest'
       responses:
         '200':
-          description: Успешное удаление
+          description: Успешно удалено
           content:
             text/plain:
               schema:
@@ -286,7 +294,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Favorite'
+                  $ref: '#/components/schemas/FavoriteInfo'
+        '404':
+          description: Избранное пока пусто
+        '500':
+          description: Ошибка сервера
 
     delete:
       tags: [favorites]
@@ -301,7 +313,7 @@ paths:
               $ref: '#/components/schemas/RemoveFavoriteRequest'
       responses:
         '200':
-          description: Успешное удаление
+          description: Успешно удалено
           content:
             text/plain:
               schema:
@@ -310,7 +322,7 @@ paths:
         '403':
           description: Нет прав на удаление
         '404':
-          description: Запись не найдена
+          description: Избранное не найдено
         '500':
           description: Ошибка сервера
 
@@ -318,25 +330,27 @@ components:
   schemas:
     RegisterRequest:
       type: object
+      required: [email, password, role, name]
       properties:
-        name:
-          type: string
-          example: Иван Иванов
-          required: [email, password, role]
         email:
           type: string
           format: email
           example: user@example.com
         password:
           type: string
+          minLength: 8
           example: securePassword123
         role:
           type: string
           enum: [customer, performer]
           example: customer
-        
+        name:
+          type: string
+          example: Иван Иванов
+
     LoginRequest:
       type: object
+      required: [email, password]
       properties:
         email:
           type: string
@@ -345,7 +359,6 @@ components:
         password:
           type: string
           example: securePassword123
-      required: [email, password]
 
     AuthResponse:
       type: object
@@ -356,6 +369,7 @@ components:
 
     CreateOfferRequest:
       type: object
+      required: [title, description, price]
       properties:
         title:
           type: string
@@ -366,11 +380,12 @@ components:
         price:
           type: number
           format: float
+          minimum: 0
           example: 5000.50
-      required: [title, description, price]
 
     UpdateOfferRequest:
       type: object
+      required: [offerID]
       properties:
         offerID:
           type: integer
@@ -387,19 +402,20 @@ components:
           type: number
           format: float
           nullable: true
+          minimum: 0
           example: 5500.00
-      required: [offerID]
 
-    RemoveOfferRequest:
+    DeleteOfferRequest:
       type: object
+      required: [offerID]
       properties:
         offerID:
           type: integer
           example: 1
-      required: [offerID]
 
     CreateServiceRequest:
       type: object
+      required: [title, description, price]
       properties:
         title:
           type: string
@@ -410,11 +426,12 @@ components:
         price:
           type: number
           format: float
+          minimum: 0
           example: 5000.50
-      required: [title, description, price]
 
     UpdateServiceRequest:
       type: object
+      required: [serviceID]
       properties:
         serviceID:
           type: integer
@@ -431,32 +448,32 @@ components:
           type: number
           format: float
           nullable: true
+          minimum: 0
           example: 6000.00
-      required: [serviceID]
 
-    RemoveServiceRequest:
+    DeleteServiceRequest:
       type: object
+      required: [serviceID]
       properties:
         serviceID:
           type: integer
           example: 1
-      required: [serviceID]
 
     AddFavoriteRequest:
       type: object
+      required: [serviceID]
       properties:
         serviceID:
           type: integer
           example: 1
-      required: [service_id]
 
     RemoveFavoriteRequest:
       type: object
+      required: [serviceID]
       properties:
         serviceID:
           type: integer
           example: 1
-      required: [service_id]
 
     User:
       type: object
@@ -504,6 +521,7 @@ components:
           type: number
           format: float
 
+
     Favorite:
       type: object
       properties:
@@ -513,9 +531,7 @@ components:
           type: integer
         service_id:
           type: integer
-        created_at:
-          type: string
-          format: date-time
+ 
 
     FavoriteInfo:
       type: object
