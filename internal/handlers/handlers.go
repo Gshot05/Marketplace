@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
+	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 )
@@ -32,20 +33,15 @@ func NewFavoriteHandler(repo *repository.FavoriteRepository) *FavoriteHandler {
 }
 
 func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
-	type req struct {
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Price       float64 `json:"price"`
-	}
-
 	return func(c *gin.Context) {
 		uid, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[model.OfferCreateReq](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -60,21 +56,15 @@ func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 }
 
 func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
-	type req struct {
-		OfferID     uint    `json:"offerID"`
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Price       float64 `json:"price"`
-	}
-
 	return func(c *gin.Context) {
 		customerID, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[model.OfferUpdateReq](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -99,8 +89,9 @@ func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[req](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -137,20 +128,15 @@ func (h *OfferHandler) ListOffers() gin.HandlerFunc {
 }
 
 func (h *ServiceHandler) CreateService() gin.HandlerFunc {
-	type req struct {
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Price       float64 `json:"price"`
-	}
-
 	return func(c *gin.Context) {
 		uid, ok := utils.CheckPerformerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[model.ServiceCreateReq](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -165,21 +151,15 @@ func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 }
 
 func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
-	type req struct {
-		ServiceID   uint    `json:"serviceID"`
-		Title       string  `json:"title,omitempty"`
-		Description string  `json:"description,omitempty"`
-		Price       float64 `json:"price,omitempty"`
-	}
-
 	return func(c *gin.Context) {
 		performerID, ok := utils.CheckPerformerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[model.ServiceUpdateReq](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -194,18 +174,15 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 }
 
 func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
-	type req struct {
-		ServiceID uint `json:"serviceID"`
-	}
-
 	return func(c *gin.Context) {
 		performerID, ok := utils.CheckPerformerRole(c)
 		if !ok {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[model.ServiceDeleteReq](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -252,8 +229,9 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[req](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 
@@ -278,8 +256,9 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 			return
 		}
 
-		r, ok := utils.BindJSON[req](c)
-		if !ok {
+		r, err := utils.BindJSON[req](c)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
 		}
 

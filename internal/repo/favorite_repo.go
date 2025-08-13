@@ -22,7 +22,7 @@ func NewFavoriteRepository(pool *pgxpool.Pool) *FavoriteRepository {
 	}
 }
 
-func (r *FavoriteRepository) Add(ctx context.Context, customerID, serviceID uint) (*model.Favorite, error) {
+func (r *FavoriteRepository) Add(ctx context.Context, customerID, serviceID uint) (*model.FavoriteReq, error) {
 	var exists bool
 	err := r.pool.QueryRow(ctx,
 		"SELECT EXISTS(SELECT 1 FROM services WHERE id = $1)",
@@ -48,7 +48,7 @@ func (r *FavoriteRepository) Add(ctx context.Context, customerID, serviceID uint
 		return nil, err
 	}
 
-	var fav model.Favorite
+	var fav model.FavoriteReq
 	err = r.pool.QueryRow(ctx, sql, args...).Scan(&fav.ID)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (r *FavoriteRepository) Delete(ctx context.Context, customerID, serviceID u
 	return result.RowsAffected() > 0, nil
 }
 
-func (r *FavoriteRepository) List(ctx context.Context, customerID uint) ([]model.FavoriteInfo, error) {
+func (r *FavoriteRepository) List(ctx context.Context, customerID uint) ([]model.FavoriteInfoReq, error) {
 	query := r.sb.Select(
 		"f.id",
 		"u.name AS customer_name",
@@ -103,9 +103,9 @@ func (r *FavoriteRepository) List(ctx context.Context, customerID uint) ([]model
 	}
 	defer rows.Close()
 
-	var favorites []model.FavoriteInfo
+	var favorites []model.FavoriteInfoReq
 	for rows.Next() {
-		var f model.FavoriteInfo
+		var f model.FavoriteInfoReq
 		if err := rows.Scan(
 			&f.ID,
 			&f.CustomerName,

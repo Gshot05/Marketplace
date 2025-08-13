@@ -50,11 +50,10 @@ func CheckPerformerRole(c *gin.Context) (uint, bool) {
 	return uid, true
 }
 
-func BindJSON[T any](c *gin.Context) (T, bool) {
+func BindJSON[T any](c *gin.Context) (T, error) {
 	var request T
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(400, gin.H{"error": "invalid request body: " + err.Error()})
-		return request, false
+		return request, err
 	}
-	return request, true
+	return request, nil
 }
