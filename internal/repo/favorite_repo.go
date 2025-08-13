@@ -34,7 +34,7 @@ func (r *FavoriteRepository) Add(ctx context.Context, customerID, serviceID uint
 	}
 
 	if !exists {
-		return nil, errors.New("service not found")
+		return nil, errors.New("Сервис не найден!")
 	}
 
 	query := r.sb.Insert("favorites").

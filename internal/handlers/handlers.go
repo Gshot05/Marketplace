@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"errors"
-
 	"github.com/gin-gonic/gin"
 
 	repository "marketplace/internal/repo"
@@ -82,7 +80,7 @@ func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 
 		offer, err := h.repo.Update(c.Request.Context(), r.OfferID, customerID, r.Title, r.Description, r.Price)
 		if err != nil {
-			c.JSON(500, gin.H{"error": errors.New("Сервис не найден или принадлежит не вам!")})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -187,7 +185,7 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 
 		service, err := h.repo.Update(c.Request.Context(), r.ServiceID, performerID, r.Title, r.Description, r.Price)
 		if err != nil {
-			c.JSON(500, gin.H{"error": errors.New("Сервис не найден или принадлежит не вам!")})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -261,10 +259,6 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 
 		fav, err := h.repo.Add(c.Request.Context(), customerID, r.ServiceID)
 		if err != nil {
-			if err.Error() == "service not found" {
-				c.JSON(404, gin.H{"error": "Услуга не найдена"})
-				return
-			}
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
@@ -296,7 +290,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 		}
 
 		if !deleted {
-			c.JSON(404, gin.H{"error": "Избранное не найдено"})
+			c.String(404, "Избранное не найдено")
 			return
 		}
 
