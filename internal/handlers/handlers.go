@@ -257,7 +257,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 		}
 
 		if !deleted {
-			c.String(404, "Избранное не найдено")
+			c.String(404, "Избранное не найдено:(")
 			return
 		}
 
@@ -276,7 +276,7 @@ func (h *FavoriteHandler) ListFavorites() gin.HandlerFunc {
 		}
 
 		if len(favorites) == 0 {
-			c.String(404, "Избранное пока пусто")
+			c.String(404, "Избранное пока пусто :(")
 			return
 		}
 
