@@ -3,19 +3,36 @@ package handlers
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"marketplace/internal/model"
+	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 )
 
-func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
+type OfferHandler struct {
+	repo *repository.OfferRepository
+}
+
+func NewOfferHandler(repo *repository.OfferRepository) *OfferHandler {
+	return &OfferHandler{repo: repo}
+}
+
+type ServiceHandler struct {
+	repo *repository.ServiceRepository
+}
+
+func NewServiceHandler(repo *repository.ServiceRepository) *ServiceHandler {
+	return &ServiceHandler{repo: repo}
+}
+
+func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 	type req struct {
 		Title       string  `json:"title"`
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
 	}
+
 	return func(c *gin.Context) {
 		uid, ok := utils.CheckCustomerRole(c)
 		if !ok {
@@ -27,40 +44,17 @@ func createOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Insert("offers").
-			Columns("customer_id", "title", "description", "price").
-			Values(uid, r.Title, r.Description, r.Price).
-			Suffix("RETURNING id").
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
-		if err != nil {
-			c.JSON(500, gin.H{"error": "internal server error"})
-			return
-		}
-
-		var newID uint
-		err = pool.QueryRow(ctx, sql, args...).Scan(&newID)
+		offer, err := h.repo.Create(c.Request.Context(), uid, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
-		o := model.Offer{
-			ID:          newID,
-			CustomerID:  uid,
-			Title:       r.Title,
-			Description: r.Description,
-			Price:       r.Price,
-		}
-
-		c.JSON(200, o)
+		c.JSON(200, offer)
 	}
 }
 
-func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 	type req struct {
 		OfferID     uint    `json:"offerID"`
 		Title       string  `json:"title"`
@@ -74,87 +68,44 @@ func updateOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[req](c)
+		r, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
 
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Update("offers").
-			SetMap(map[string]interface{}{
-				"title":       req.Title,
-				"description": req.Description,
-				"price":       req.Price,
-			}).
-			Where(sq.Eq{
-				"id":          req.OfferID,
-				"customer_id": customerID,
-			}).
-			Suffix("RETURNING id, customer_id, title, description, price").
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
+		offer, err := h.repo.Update(c.Request.Context(), r.OfferID, customerID, r.Title, r.Description, r.Price)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to build query"})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
-		var updated model.Offer
-		if err := pool.QueryRow(ctx, sql, args...).Scan(
-			&updated.ID, &updated.CustomerID, &updated.Title,
-			&updated.Description, &updated.Price,
-		); err != nil {
-			if err == pgx.ErrNoRows {
-				c.JSON(404, gin.H{"error": "Оффер не найден или принадлежит не вам!"})
-				return
-			}
-			c.JSON(500, gin.H{"error": "database error"})
-			return
-		}
-
-		c.JSON(200, updated)
+		c.JSON(200, offer)
 	}
 }
 
-func deleteOffer(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 	type req struct {
 		OfferID uint `json:"offerID"`
 	}
 
 	return func(c *gin.Context) {
-		userID, ok := utils.CheckCustomerRole(c)
+		customerID, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		req, ok := utils.BindJSON[req](c)
+		r, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
 
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Delete("offers").
-			Where(sq.Eq{
-				"id":          req.OfferID,
-				"customer_id": userID,
-			}).
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
+		deleted, err := h.repo.Delete(c.Request.Context(), r.OfferID, customerID)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to build SQL query"})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
-		result, err := pool.Exec(ctx, sql, args...)
-		if err != nil {
-			c.JSON(500, gin.H{"error": "database error"})
-			return
-		}
-
-		if result.RowsAffected() == 0 {
+		if !deleted {
 			c.String(404, "Оффер не найден или вам не принадлежит")
 			return
 		}
@@ -163,39 +114,15 @@ func deleteOffer(pool *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func listOffers(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *OfferHandler) ListOffers() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Select("id", "customer_id", "title", "description", "price").
-			From("offers").
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
-		if err != nil {
-			c.JSON(500, gin.H{"error": "internal server error"})
-			return
-		}
-
-		rows, err := pool.Query(ctx, sql, args...)
+		offers, err := h.repo.List(c.Request.Context())
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		defer rows.Close()
 
-		var offers []model.Offer
-		for rows.Next() {
-			var o model.Offer
-			err := rows.Scan(&o.ID, &o.CustomerID, &o.Title, &o.Description, &o.Price)
-			if err != nil {
-				c.JSON(500, gin.H{"error": "error scanning row"})
-				return
-			}
-			offers = append(offers, o)
-		}
-
-		if offers == nil {
+		if len(offers) == 0 {
 			c.String(404, "Офферов пока нет:(")
 			return
 		}
@@ -204,12 +131,13 @@ func listOffers(pool *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func createService(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 	type req struct {
 		Title       string  `json:"title"`
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
 	}
+
 	return func(c *gin.Context) {
 		uid, ok := utils.CheckPerformerRole(c)
 		if !ok {
@@ -221,42 +149,19 @@ func createService(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Insert("services").
-			Columns("performer_id", "title", "description", "price").
-			Values(uid, r.Title, r.Description, r.Price).
-			Suffix("RETURNING id").
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
-		if err != nil {
-			c.JSON(500, gin.H{"error": "internal server error"})
-			return
-		}
-
-		var newID uint
-		err = pool.QueryRow(ctx, sql, args...).Scan(&newID)
+		service, err := h.repo.Create(c.Request.Context(), uid, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
-		s := model.Service{
-			ID:          newID,
-			PerformerID: uid,
-			Title:       r.Title,
-			Description: r.Description,
-			Price:       r.Price,
-		}
-
-		c.JSON(200, s)
+		c.JSON(200, service)
 	}
 }
 
-func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 	type req struct {
-		ServiceID   uint    `json:"serviceID" binding:"required"`
+		ServiceID   uint    `json:"serviceID"`
 		Title       string  `json:"title,omitempty"`
 		Description string  `json:"description,omitempty"`
 		Price       float64 `json:"price,omitempty"`
@@ -268,90 +173,48 @@ func updateService(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		req, ok := utils.BindJSON[req](c)
+		r, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
 
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Update("services").
-			SetMap(map[string]interface{}{
-				"title":       req.Title,
-				"description": req.Description,
-				"price":       req.Price,
-			}).
-			Where(sq.Eq{
-				"id":           req.ServiceID,
-				"performer_id": performerID,
-			}).
-			Suffix("RETURNING id, performer_id, title, description, price").
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
+		service, err := h.repo.Update(c.Request.Context(), r.ServiceID, performerID, r.Title, r.Description, r.Price)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to build query"})
-			return
-		}
-
-		var updated model.Service
-		if err := pool.QueryRow(ctx, sql, args...).Scan(
-			&updated.ID,
-			&updated.PerformerID,
-			&updated.Title,
-			&updated.Description,
-			&updated.Price,
-		); err != nil {
-			if err == pgx.ErrNoRows {
-				c.JSON(404, gin.H{"error": "service not found or access denied"})
+			if err.Error() == "service not found or access denied" {
+				c.JSON(404, gin.H{"error": err.Error()})
 				return
 			}
-			c.JSON(500, gin.H{"error": "database error"})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(200, updated)
+		c.JSON(200, service)
 	}
 }
 
-func deleteService(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 	type req struct {
-		ServiceID uint `json:"ServiceID"`
+		ServiceID uint `json:"serviceID"`
 	}
 
 	return func(c *gin.Context) {
-		userID, ok := utils.CheckPerformerRole(c)
+		performerID, ok := utils.CheckPerformerRole(c)
 		if !ok {
 			return
 		}
 
-		req, ok := utils.BindJSON[req](c)
+		r, ok := utils.BindJSON[req](c)
 		if !ok {
 			return
 		}
 
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Delete("services").
-			Where(sq.Eq{
-				"id":           req.ServiceID,
-				"performer_id": userID,
-			}).
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
+		deleted, err := h.repo.Delete(c.Request.Context(), r.ServiceID, performerID)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to build SQL query"})
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
-		result, err := pool.Exec(ctx, sql, args...)
-		if err != nil {
-			c.JSON(500, gin.H{"error": "database error"})
-			return
-		}
-
-		if result.RowsAffected() == 0 {
+		if !deleted {
 			c.String(404, "Услуга не найдена или вам не принадлежит")
 			return
 		}
@@ -360,38 +223,16 @@ func deleteService(pool *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func listServices(pool *pgxpool.Pool) gin.HandlerFunc {
+func (h *ServiceHandler) ListServices() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-
-		queryBuilder := sq.Select("id", "performer_id", "title", "description", "price").
-			From("services").
-			PlaceholderFormat(sq.Dollar)
-
-		sql, args, err := queryBuilder.ToSql()
-		if err != nil {
-			c.JSON(500, gin.H{"error": "internal server error"})
-			return
-		}
-
-		rows, err := pool.Query(ctx, sql, args...)
+		services, err := h.repo.List(c.Request.Context())
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		defer rows.Close()
 
-		var services []model.Service
-		for rows.Next() {
-			var s model.Service
-			if err := rows.Scan(&s.ID, &s.PerformerID, &s.Title, &s.Description, &s.Price); err != nil {
-				c.JSON(500, gin.H{"error": "error scanning row"})
-				return
-			}
-			services = append(services, s)
-		}
-		if services == nil {
-			c.String(400, "Услуг пока нет:(")
+		if len(services) == 0 {
+			c.String(404, "Услуг пока нет:(")
 			return
 		}
 
