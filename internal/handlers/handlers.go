@@ -219,17 +219,13 @@ func (h *ServiceHandler) ListServices() gin.HandlerFunc {
 }
 
 func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
-	type req struct {
-		ServiceID uint `json:"serviceID"`
-	}
-
 	return func(c *gin.Context) {
 		customerID, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		r, err := utils.BindJSON[req](c)
+		r, err := utils.BindJSON[model.FavoriteAddReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
@@ -246,17 +242,13 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 }
 
 func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
-	type req struct {
-		ServiceID uint `json:"serviceID"`
-	}
-
 	return func(c *gin.Context) {
 		customerID, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		r, err := utils.BindJSON[req](c)
+		r, err := utils.BindJSON[model.FavoriteDeleteReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return

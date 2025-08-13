@@ -12,6 +12,11 @@ type (
 		CustomerName       string `json:"customer_name"`
 		ServiceTitle       string `json:"service_title"`
 		ServiceDescription string `json:"service_description"`
+		ServiceID          uint   `json:"serviceID"`
+	}
+
+	FavoriteAddReq struct {
+		ServiceID uint `json:"serviceID"`
 	}
 
 	FavoriteDeleteReq struct {
