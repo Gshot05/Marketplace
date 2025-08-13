@@ -10,7 +10,7 @@ import (
 func AuthMiddleware(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no auth"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Нет авторизации!"})
 		return
 	}
 	if len(token) > 7 && token[:7] == "Bearer " {
@@ -18,7 +18,7 @@ func AuthMiddleware(c *gin.Context) {
 	}
 	claims, err := auth.ParseToken(token)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Фиговый токен!"})
 		return
 	}
 

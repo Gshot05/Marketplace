@@ -1,6 +1,7 @@
-package handlers
+package router
 
 import (
+	"marketplace/internal/handlers"
 	"marketplace/internal/middleware"
 	repository "marketplace/internal/repo"
 
@@ -14,10 +15,10 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	serviceRepo := repository.NewServiceRepository(pool)
 	favoriteRepo := repository.NewFavoriteRepository(pool)
 
-	authHandler := NewAuthHandler(authRepo)
-	offerHandler := NewOfferHandler(offerRepo)
-	serviceHandler := NewServiceHandler(serviceRepo)
-	favoriteHandler := NewFavoriteHandler(favoriteRepo)
+	authHandler := handlers.NewAuthHandler(authRepo)
+	offerHandler := handlers.NewOfferHandler(offerRepo)
+	serviceHandler := handlers.NewServiceHandler(serviceRepo)
+	favoriteHandler := handlers.NewFavoriteHandler(favoriteRepo)
 
 	r.POST("/auth/register", authHandler.Register())
 	r.POST("/auth/login", authHandler.Login())
