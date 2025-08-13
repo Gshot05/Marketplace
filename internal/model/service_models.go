@@ -21,8 +21,4 @@ type (
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
 	}
-
-	ServiceDeleteReq struct {
-		ServiceID uint `json:"serviceID"`
-	}
 )

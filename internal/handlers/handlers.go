@@ -79,17 +79,13 @@ func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 }
 
 func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
-	type req struct {
-		OfferID uint `json:"offerID"`
-	}
-
 	return func(c *gin.Context) {
 		customerID, ok := utils.CheckCustomerRole(c)
 		if !ok {
 			return
 		}
 
-		r, err := utils.BindJSON[req](c)
+		r, err := utils.BindJSON[model.OfferDeleteReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
@@ -180,7 +176,7 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 			return
 		}
 
-		r, err := utils.BindJSON[model.ServiceDeleteReq](c)
+		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
@@ -225,7 +221,7 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 			return
 		}
 
-		r, err := utils.BindJSON[model.FavoriteAddReq](c)
+		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
@@ -248,7 +244,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 			return
 		}
 
-		r, err := utils.BindJSON[model.FavoriteDeleteReq](c)
+		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return

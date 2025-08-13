@@ -125,7 +125,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Offer'
 
-  /api/offers/{id}:
+  /api/offers/:
     delete:
       tags: [offers]
       summary: Удалить предложение (только владелец)
@@ -219,7 +219,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Service'
 
-  /api/services/{id}:
+  /api/services/:
     delete:
       tags: [services]
       summary: Удалить услугу (только владелец)

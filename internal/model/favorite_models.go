@@ -14,12 +14,4 @@ type (
 		ServiceDescription string `json:"service_description"`
 		ServiceID          uint   `json:"serviceID"`
 	}
-
-	FavoriteAddReq struct {
-		ServiceID uint `json:"serviceID"`
-	}
-
-	FavoriteDeleteReq struct {
-		ServiceID uint `json:"serviceID"`
-	}
 )
