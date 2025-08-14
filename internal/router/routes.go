@@ -4,12 +4,23 @@ import (
 	"marketplace/internal/handlers"
 	"marketplace/internal/middleware"
 	repository "marketplace/internal/repo"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:8080"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	authRepo := repository.NewAuthRepo(pool)
 	offerRepo := repository.NewOfferRepository(pool)
 	serviceRepo := repository.NewServiceRepository(pool)
