@@ -26,7 +26,6 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	v1 := r.Group("/api")
 	v1.Use(middleware.AuthMiddleware)
-
 	v1.POST("/offers", offerHandler.CreateOffer())
 	v1.PATCH("/offers", offerHandler.UpdateOffer())
 	v1.DELETE("/offers", offerHandler.DeleteOffer())
