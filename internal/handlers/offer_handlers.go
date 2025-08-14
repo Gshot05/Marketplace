@@ -18,18 +18,19 @@ func NewOfferHandler(repo *repository.OfferRepository) *OfferHandler {
 
 func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uid, ok := utils.CheckCustomerRole(c)
-		if !ok {
+		customerID, err := utils.CheckCustomerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.OfferCreateReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
-		offer, err := h.repo.Create(c.Request.Context(), uid, r.Title, r.Description, r.Price)
+		offer, err := h.repo.Create(c.Request.Context(), customerID, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -41,14 +42,15 @@ func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 
 func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		customerID, ok := utils.CheckCustomerRole(c)
-		if !ok {
+		customerID, err := utils.CheckCustomerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.OfferUpdateReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -64,14 +66,15 @@ func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 
 func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		customerID, ok := utils.CheckCustomerRole(c)
-		if !ok {
+		customerID, err := utils.CheckCustomerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.OfferDeleteReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 

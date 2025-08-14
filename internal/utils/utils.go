@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"errors"
+	errors "marketplace/internal/error"
 	"net/mail"
 
 	"github.com/gin-gonic/gin"
@@ -14,40 +14,36 @@ func ValidateEmail(email string) error {
 
 func ValidateName(name string) error {
 	if name == "" || name == " " {
-		return errors.New("Имя не может быть пустым")
+		return errors.ErrEmptyName
 	}
 	return nil
 }
 
 func CheckRole(role string) error {
 	if role == "" || role == " " {
-		return errors.New("Некорректная роль")
+		return errors.ErrEmptyRole
 	}
 	return nil
 }
 
-func CheckCustomerRole(c *gin.Context) (uint, bool) {
+func CheckCustomerRole(c *gin.Context) (uint, error) {
 	uid := c.GetUint("user_id")
 	role := c.GetString("role")
 
 	if role != "customer" {
-		c.JSON(403, gin.H{"error": "Только заказчики имеют доступ к этой функции"})
-		return 0, false
+		return 0, errors.ErrNotCustomer
 	}
-
-	return uid, true
+	return uid, nil
 }
 
-func CheckPerformerRole(c *gin.Context) (uint, bool) {
+func CheckPerformerRole(c *gin.Context) (uint, error) {
 	uid := c.GetUint("user_id")
 	role := c.GetString("role")
 
 	if role != "performer" {
-		c.JSON(403, gin.H{"error": "Только исполнители имеют доступ к этой функции"})
-		return 0, false
+		return 0, errors.ErrNotPerformer
 	}
-
-	return uid, true
+	return uid, nil
 }
 
 func BindJSON[T any](c *gin.Context) (T, error) {
@@ -55,5 +51,5 @@ func BindJSON[T any](c *gin.Context) (T, error) {
 	if err := c.ShouldBindJSON(&request); err != nil {
 		return request, err
 	}
-	return request, nil
+	return request, errors.ErrWrongJson
 }

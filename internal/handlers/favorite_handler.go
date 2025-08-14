@@ -18,14 +18,15 @@ func NewFavoriteHandler(repo *repository.FavoriteRepository) *FavoriteHandler {
 
 func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		customerID, ok := utils.CheckCustomerRole(c)
-		if !ok {
+		customerID, err := utils.CheckCustomerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -41,14 +42,15 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 
 func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		customerID, ok := utils.CheckCustomerRole(c)
-		if !ok {
+		customerID, err := utils.CheckCustomerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 

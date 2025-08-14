@@ -18,18 +18,19 @@ func NewServiceHandler(repo *repository.ServiceRepository) *ServiceHandler {
 
 func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uid, ok := utils.CheckPerformerRole(c)
-		if !ok {
+		performerID, err := utils.CheckPerformerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.ServiceCreateReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
-		service, err := h.repo.Create(c.Request.Context(), uid, r.Title, r.Description, r.Price)
+		service, err := h.repo.Create(c.Request.Context(), performerID, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -41,14 +42,15 @@ func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 
 func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		performerID, ok := utils.CheckPerformerRole(c)
-		if !ok {
+		performerID, err := utils.CheckPerformerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.ServiceUpdateReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -64,14 +66,15 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 
 func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		performerID, ok := utils.CheckPerformerRole(c)
-		if !ok {
+		performerID, err := utils.CheckPerformerRole(c)
+		if err != nil {
+			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
