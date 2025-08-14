@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"marketplace/internal/auth"
+	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 
@@ -18,15 +19,8 @@ func NewAuthHandler(repo *repository.AuthRepo) *AuthHandler {
 }
 
 func (h *AuthHandler) Register() gin.HandlerFunc {
-	type req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Role     string `json:"role"`
-		Name     string `json:"name"`
-	}
-
 	return func(c *gin.Context) {
-		r, err := utils.BindJSON[req](c)
+		r, err := utils.BindJSON[model.RegisterReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
@@ -64,13 +58,8 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 }
 
 func (h *AuthHandler) Login() gin.HandlerFunc {
-	type req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
 	return func(c *gin.Context) {
-		r, err := utils.BindJSON[req](c)
+		r, err := utils.BindJSON[model.LoginReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
 			return
