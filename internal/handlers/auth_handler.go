@@ -22,7 +22,7 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := utils.BindJSON[model.RegisterReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -61,7 +61,7 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := utils.BindJSON[model.LoginReq](c)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "Неверный формат запроса: " + err.Error()})
+			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 		user, err := h.repo.GetUserByEmail(c.Request.Context(), r.Email)

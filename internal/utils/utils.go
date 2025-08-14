@@ -49,7 +49,7 @@ func CheckPerformerRole(c *gin.Context) (uint, error) {
 func BindJSON[T any](c *gin.Context) (T, error) {
 	var request T
 	if err := c.ShouldBindJSON(&request); err != nil {
-		return request, err
+		return request, errors.ErrWrongJson
 	}
-	return request, errors.ErrWrongJson
+	return request, nil
 }

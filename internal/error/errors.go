@@ -7,5 +7,5 @@ var (
 	ErrNotPerformer = errors.New("Только исполнители имеют доступ к этой функции")
 	ErrEmptyName    = errors.New("Имя не может быть пустым")
 	ErrEmptyRole    = errors.New("Некорректная роль")
-	ErrWrongJson    = errors.New("Неверный формат запроса: ")
+	ErrWrongJson    = errors.New("Неверный формат запроса")
 )
