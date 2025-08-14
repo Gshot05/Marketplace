@@ -14,7 +14,7 @@ import (
 func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:8080"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
