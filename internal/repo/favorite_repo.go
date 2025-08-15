@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"errors"
+	errors "marketplace/internal/error"
 	"marketplace/internal/model"
 
 	"github.com/Masterminds/squirrel"
@@ -34,7 +34,7 @@ func (r *FavoriteRepository) Add(ctx context.Context, customerID, serviceID uint
 	}
 
 	if !exists {
-		return nil, errors.New("Сервис не найден!")
+		return nil, errors.ErrNotFindService
 	}
 
 	query := r.sb.Insert("favorites").

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	errors "marketplace/internal/error"
 	"marketplace/internal/model"
 
 	"github.com/Masterminds/squirrel"
@@ -70,7 +71,7 @@ func (r *ServiceRepository) Update(ctx context.Context, serviceID, performerID u
 		&service.ID, &service.PerformerID, &service.Title, &service.Description, &service.Price,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrWrongUpdateService
 	}
 
 	return &service, nil

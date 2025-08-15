@@ -85,11 +85,11 @@ func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 		}
 
 		if !deleted {
-			c.String(404, "Оффер не найден или вам не принадлежит")
+			c.JSON(404, gin.H{"error": "Оффер не найден или вам не принадлежит!"})
 			return
 		}
 
-		c.String(200, "Успешно!")
+		c.JSON(200, gin.H{"success": "Успешно!"})
 	}
 }
 
@@ -102,7 +102,7 @@ func (h *OfferHandler) ListOffers() gin.HandlerFunc {
 		}
 
 		if len(offers) == 0 {
-			c.String(404, "Офферов пока нет:(")
+			c.JSON(404, gin.H{"error": "Офферов пока нет:("})
 			return
 		}
 

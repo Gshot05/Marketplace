@@ -85,11 +85,11 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 		}
 
 		if !deleted {
-			c.String(404, "Услуга не найдена или вам не принадлежит")
+			c.JSON(404, gin.H{"error": "Услуга не найдена или вам не принадлежит!"})
 			return
 		}
 
-		c.String(200, "Успешно!")
+		c.JSON(200, gin.H{"success": "Успешно!"})
 	}
 }
 
@@ -102,7 +102,7 @@ func (h *ServiceHandler) ListServices() gin.HandlerFunc {
 		}
 
 		if len(services) == 0 {
-			c.String(404, "Услуг пока нет:(")
+			c.JSON(404, gin.H{"error": "Услуг пока нет:("})
 			return
 		}
 
