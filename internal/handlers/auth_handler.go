@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"marketplace/internal/auth"
+	"marketplace/internal/logger"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
@@ -11,11 +12,17 @@ import (
 )
 
 type AuthHandler struct {
-	repo *repository.AuthRepo
+	repo   *repository.AuthRepo
+	logger *logger.Logger
 }
 
-func NewAuthHandler(repo *repository.AuthRepo) *AuthHandler {
-	return &AuthHandler{repo: repo}
+func NewAuthHandler(
+	repo *repository.AuthRepo,
+	logger *logger.Logger,
+) *AuthHandler {
+	return &AuthHandler{
+		repo:   repo,
+		logger: logger}
 }
 
 func (h *AuthHandler) Register() gin.HandlerFunc {
@@ -25,6 +32,7 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Запрос на регистрацию: %v", r)
 
 		if err := utils.ValidateEmail(r.Email); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
@@ -46,6 +54,7 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("ID созданого юзера: %v", userID)
 
 		token, err := auth.GenerateToken(userID, r.Role)
 		if err != nil {
@@ -64,11 +73,14 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Залогиновшийся юзер: %v", r)
+
 		user, err := h.repo.GetUserByEmail(c.Request.Context(), r.Email)
 		if err != nil {
 			c.JSON(401, gin.H{"error": "Неверный логин или пароль"})
 			return
 		}
+		h.logger.Info("Залогиновшийся юзер: %v", user)
 
 		if err := bcrypt.CompareHashAndPassword(
 			[]byte(user.PasswordHash),

@@ -25,12 +25,12 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	}))
 
 	// Logger
-	logger := logger.New(pool)
+	logger := logger.NewLogger(pool)
 
 	// Auth
 	auth := r.Group("/auth")
 	authRepo := repository.NewAuthRepo(pool)
-	authHandler := handlers.NewAuthHandler(authRepo)
+	authHandler := handlers.NewAuthHandler(authRepo, logger)
 	auth.POST("/register", authHandler.Register())
 	auth.POST("/login", authHandler.Login())
 
@@ -48,7 +48,7 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	// Services
 	serviceRepo := repository.NewServiceRepository(pool)
-	serviceHandler := handlers.NewServiceHandler(serviceRepo)
+	serviceHandler := handlers.NewServiceHandler(serviceRepo, logger)
 	v1.POST("/services", serviceHandler.CreateService())
 	v1.PATCH("/services", serviceHandler.UpdateService())
 	v1.DELETE("/services", serviceHandler.DeleteService())
@@ -56,7 +56,7 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	// Favorites
 	favoriteRepo := repository.NewFavoriteRepository(pool)
-	favoriteHandler := handlers.NewFavoriteHandler(favoriteRepo)
+	favoriteHandler := handlers.NewFavoriteHandler(favoriteRepo, logger)
 	v1.POST("/favorites", favoriteHandler.AddFavorite())
 	v1.DELETE("/favorites", favoriteHandler.DeleteFavorite())
 	v1.GET("/favorites", favoriteHandler.ListFavorites())

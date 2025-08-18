@@ -44,6 +44,7 @@ func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Созданный оффер %v", offer)
 
 		c.JSON(200, offer)
 	}
@@ -70,6 +71,7 @@ func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Обновлённый оффер %v", offer)
 
 		c.JSON(200, offer)
 	}

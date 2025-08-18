@@ -12,8 +12,7 @@ type Logger struct {
 	pool *pgxpool.Pool
 }
 
-// New создает логгер с pgxpool.Pool
-func New(pool *pgxpool.Pool) *Logger {
+func NewLogger(pool *pgxpool.Pool) *Logger {
 	return &Logger{pool: pool}
 }
 

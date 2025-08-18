@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"marketplace/internal/logger"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
@@ -9,11 +10,17 @@ import (
 )
 
 type FavoriteHandler struct {
-	repo *repository.FavoriteRepository
+	repo   *repository.FavoriteRepository
+	logger *logger.Logger
 }
 
-func NewFavoriteHandler(repo *repository.FavoriteRepository) *FavoriteHandler {
-	return &FavoriteHandler{repo: repo}
+func NewFavoriteHandler(
+	repo *repository.FavoriteRepository,
+	logger *logger.Logger,
+) *FavoriteHandler {
+	return &FavoriteHandler{
+		repo:   repo,
+		logger: logger}
 }
 
 func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
@@ -23,18 +30,21 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Запрос на добавление в избранное от человека с ID: %v", customerID)
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Запрос на добавление: %v", r)
 
 		fav, err := h.repo.Add(c.Request.Context(), customerID, r.ServiceID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Добавленное избранное: %v", fav)
 
 		c.JSON(200, fav)
 	}
@@ -47,6 +57,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Удаление из избранного от человека с ID: %v", customerID)
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {

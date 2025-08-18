@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS favorites (
 );
 
 CREATE TABLE IF NOT EXISTS logs (
-    id BIGSERIAL PRIMARY KEY,
-    level VARCHAR(10) NOT NULL,          
-    message TEXT NOT NULL,               
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id BIGSERIAL PRIMARY KEY,
+  level VARCHAR(10) NOT NULL,          
+  message TEXT NOT NULL,               
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
