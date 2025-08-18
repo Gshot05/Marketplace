@@ -2,6 +2,7 @@ package router
 
 import (
 	"marketplace/internal/handlers"
+	"marketplace/internal/logger"
 	"marketplace/internal/middleware"
 	repository "marketplace/internal/repo"
 	"time"
@@ -23,6 +24,9 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// Logger
+	logger := logger.New(pool)
+
 	// Auth
 	auth := r.Group("/auth")
 	authRepo := repository.NewAuthRepo(pool)
@@ -36,7 +40,7 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	// Offers
 	offerRepo := repository.NewOfferRepository(pool)
-	offerHandler := handlers.NewOfferHandler(offerRepo)
+	offerHandler := handlers.NewOfferHandler(offerRepo, logger)
 	v1.POST("/offers", offerHandler.CreateOffer())
 	v1.PATCH("/offers", offerHandler.UpdateOffer())
 	v1.DELETE("/offers", offerHandler.DeleteOffer())

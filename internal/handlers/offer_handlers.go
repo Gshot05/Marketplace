@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"marketplace/internal/logger"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
@@ -9,11 +10,17 @@ import (
 )
 
 type OfferHandler struct {
-	repo *repository.OfferRepository
+	repo   *repository.OfferRepository
+	logger *logger.Logger
 }
 
-func NewOfferHandler(repo *repository.OfferRepository) *OfferHandler {
-	return &OfferHandler{repo: repo}
+func NewOfferHandler(
+	repo *repository.OfferRepository,
+	logger *logger.Logger) *OfferHandler {
+	return &OfferHandler{
+		repo:   repo,
+		logger: logger,
+	}
 }
 
 func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
@@ -23,12 +30,14 @@ func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Запрос на создание оффера человека с ID: %v", customerID)
 
 		r, err := utils.BindJSON[model.OfferCreateReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Оффер который пришёл: %v", r)
 
 		offer, err := h.repo.Create(c.Request.Context(), customerID, r.Title, r.Description, r.Price)
 		if err != nil {
@@ -47,12 +56,14 @@ func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Запрос на обновление оффера человека с ID: %v", customerID)
 
 		r, err := utils.BindJSON[model.OfferUpdateReq](c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Оффер который пришёл: %v", r)
 
 		offer, err := h.repo.Update(c.Request.Context(), r.OfferID, customerID, r.Title, r.Description, r.Price)
 		if err != nil {
@@ -71,6 +82,7 @@ func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
+		h.logger.Info("Запрос на удаление оффера человека с ID: %v", customerID)
 
 		r, err := utils.BindJSON[model.OfferDeleteReq](c)
 		if err != nil {
