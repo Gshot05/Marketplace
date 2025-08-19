@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	errors "marketplace/internal/error"
+	errors2 "marketplace/internal/error"
 	"marketplace/internal/model"
 
 	"github.com/Masterminds/squirrel"
@@ -71,7 +71,7 @@ func (r *OfferRepository) Update(ctx context.Context, offerID, customerID uint, 
 		&offer.ID, &offer.CustomerID, &offer.Title, &offer.Description, &offer.Price,
 	)
 	if err != nil {
-		return nil, errors.ErrWrongUpdateOffer
+		return nil, errors2.ErrWrongUpdateOffer
 	}
 
 	return &offer, nil

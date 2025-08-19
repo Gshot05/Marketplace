@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	errors2 "marketplace/internal/error"
 	"marketplace/internal/model"
 
 	sq "github.com/Masterminds/squirrel"
@@ -62,7 +63,7 @@ func (r *AuthRepo) GetUserByEmail(ctx context.Context, email string) (*model.Use
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errors.New("Неверный логин или пароль!")
+			return nil, errors2.ErrWrongPassOrLog
 		}
 		return nil, err
 	}

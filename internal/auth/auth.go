@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	errors2 "marketplace/internal/error"
 	"os"
 	"time"
 
@@ -34,12 +35,12 @@ func ParseToken(tokenStr string) (*Claims, error) {
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, errors.New("Токен истёк!")
+			return nil, errors2.ErrTokenExpired
 		}
 		return nil, err
 	}
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil
 	}
-	return nil, errors.New("Фиговый токен!")
+	return nil, errors2.ErrBadToken
 }
