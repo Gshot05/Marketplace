@@ -29,6 +29,7 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := utils.BindJSON[model.RegisterReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
@@ -70,6 +71,7 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := utils.BindJSON[model.LoginReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}

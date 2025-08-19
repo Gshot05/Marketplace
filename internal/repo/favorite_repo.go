@@ -85,7 +85,6 @@ func (r *FavoriteRepository) List(ctx context.Context, customerID uint) ([]model
 		"f.id",
 		"u.name AS customer_name",
 		"s.title AS service_title",
-		"s.description AS service_description",
 		"s.id AS serviceID",
 	).
 		From("favorites f").
@@ -111,7 +110,6 @@ func (r *FavoriteRepository) List(ctx context.Context, customerID uint) ([]model
 			&f.ID,
 			&f.CustomerName,
 			&f.ServiceTitle,
-			&f.ServiceDescription,
 			&f.ServiceID,
 		); err != nil {
 			return nil, err

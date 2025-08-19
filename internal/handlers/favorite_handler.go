@@ -27,6 +27,7 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		customerID, err := utils.CheckCustomerRole(c)
 		if err != nil {
+			h.logger.Error("Ошибка проверки роли: %v", customerID)
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
@@ -34,6 +35,7 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
@@ -54,6 +56,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		customerID, err := utils.CheckCustomerRole(c)
 		if err != nil {
+			h.logger.Error("Ошибка проверки роли: %v", err)
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
@@ -61,6 +64,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}

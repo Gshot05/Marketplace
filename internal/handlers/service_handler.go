@@ -27,6 +27,7 @@ func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		performerID, err := utils.CheckPerformerRole(c)
 		if err != nil {
+			h.logger.Error("Ошибка проверки роли: %v", err)
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
@@ -34,6 +35,7 @@ func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 
 		r, err := utils.BindJSON[model.ServiceCreateReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
@@ -54,6 +56,7 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		performerID, err := utils.CheckPerformerRole(c)
 		if err != nil {
+			h.logger.Error("Ошибка проверки роли: %v", err)
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
@@ -61,6 +64,7 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 
 		r, err := utils.BindJSON[model.ServiceUpdateReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
@@ -81,6 +85,7 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		performerID, err := utils.CheckPerformerRole(c)
 		if err != nil {
+			h.logger.Error("Ошибка проверки роли: %v", err)
 			c.JSON(403, gin.H{"error": err.Error()})
 			return
 		}
@@ -88,6 +93,7 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}

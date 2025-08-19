@@ -8,10 +8,9 @@ type (
 	}
 
 	FavoriteInfoReq struct {
-		ID                 uint   `json:"id"`
-		CustomerName       string `json:"customer_name"`
-		ServiceTitle       string `json:"service_title"`
-		ServiceDescription string `json:"service_description"`
-		ServiceID          uint   `json:"serviceID"`
+		ID           uint   `json:"id"`
+		CustomerName string `json:"customer_name"`
+		ServiceTitle string `json:"service_title"`
+		ServiceID    uint   `json:"serviceID"`
 	}
 )
