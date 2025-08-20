@@ -9,7 +9,7 @@ var (
 	ErrEmptyRole          = errors.New("Некорректная роль!")
 	ErrWrongJson          = errors.New("Неверный формат запроса!")
 	ErrWrongUpdateOffer   = errors.New("Оффер не найден или принадлежит не вам!")
-	ErrWrongUpdateService = errors.New("Услуга не найден или принадлежит не вам!")
+	ErrWrongUpdateService = errors.New("Услуга не найдена или принадлежит не вам!")
 	ErrNotFindService     = errors.New("Сервис не найден!")
 	ErrNoAuth             = errors.New("Нет авторизации!")
 	ErrBadToken           = errors.New("Фиговый токен!")
