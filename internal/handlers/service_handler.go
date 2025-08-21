@@ -3,19 +3,18 @@ package handlers
 import (
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
-	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ServiceHandler struct {
-	repo   *repository.ServiceRepository
+	repo   ServiceRepo
 	logger *logger.Logger
 }
 
 func NewServiceHandler(
-	repo *repository.ServiceRepository,
+	repo ServiceRepo,
 	logger *logger.Logger,
 ) *ServiceHandler {
 	return &ServiceHandler{

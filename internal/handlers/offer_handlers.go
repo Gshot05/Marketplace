@@ -3,19 +3,18 @@ package handlers
 import (
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
-	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type OfferHandler struct {
-	repo   *repository.OfferRepository
+	repo   OfferRepo
 	logger *logger.Logger
 }
 
 func NewOfferHandler(
-	repo *repository.OfferRepository,
+	repo OfferRepo,
 	logger *logger.Logger) *OfferHandler {
 	return &OfferHandler{
 		repo:   repo,

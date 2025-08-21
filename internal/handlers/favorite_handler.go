@@ -3,19 +3,18 @@ package handlers
 import (
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
-	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type FavoriteHandler struct {
-	repo   *repository.FavoriteRepository
+	repo   FavoriteRepo
 	logger *logger.Logger
 }
 
 func NewFavoriteHandler(
-	repo *repository.FavoriteRepository,
+	repo FavoriteRepo,
 	logger *logger.Logger,
 ) *FavoriteHandler {
 	return &FavoriteHandler{

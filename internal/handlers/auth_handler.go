@@ -4,7 +4,6 @@ import (
 	"marketplace/internal/auth"
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
-	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -12,12 +11,12 @@ import (
 )
 
 type AuthHandler struct {
-	repo   *repository.AuthRepo
+	repo   AuthRepo
 	logger *logger.Logger
 }
 
 func NewAuthHandler(
-	repo *repository.AuthRepo,
+	repo AuthRepo,
 	logger *logger.Logger,
 ) *AuthHandler {
 	return &AuthHandler{
