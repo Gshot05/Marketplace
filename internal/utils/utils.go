@@ -1,8 +1,9 @@
 package utils
 
 import (
-	errors "marketplace/internal/error"
+	errors2 "marketplace/internal/error"
 	"net/mail"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,14 +15,14 @@ func ValidateEmail(email string) error {
 
 func ValidateName(name string) error {
 	if name == "" || name == " " {
-		return errors.ErrEmptyName
+		return errors2.ErrEmptyName
 	}
 	return nil
 }
 
 func CheckRole(role string) error {
 	if role == "" || role == " " {
-		return errors.ErrEmptyRole
+		return errors2.ErrEmptyRole
 	}
 	return nil
 }
@@ -31,7 +32,7 @@ func CheckCustomerRole(c *gin.Context) (uint, error) {
 	role := c.GetString("role")
 
 	if role != "customer" {
-		return 0, errors.ErrNotCustomer
+		return 0, errors2.ErrNotCustomer
 	}
 	return uid, nil
 }
@@ -41,7 +42,7 @@ func CheckPerformerRole(c *gin.Context) (uint, error) {
 	role := c.GetString("role")
 
 	if role != "performer" {
-		return 0, errors.ErrNotPerformer
+		return 0, errors2.ErrNotPerformer
 	}
 	return uid, nil
 }
@@ -49,7 +50,22 @@ func CheckPerformerRole(c *gin.Context) (uint, error) {
 func BindJSON[T any](c *gin.Context) (T, error) {
 	var request T
 	if err := c.ShouldBindJSON(&request); err != nil {
-		return request, errors.ErrWrongJson
+		return request, errors2.ErrWrongJson
 	}
 	return request, nil
+}
+
+func ValidateBearerToken(token string) (string, error) {
+	const bearerPrefix = "Bearer "
+
+	token = strings.TrimSpace(token)
+	if token == "" || token == " " {
+		return "", errors2.ErrNoAuth
+	}
+
+	if !strings.HasPrefix(token, bearerPrefix) {
+		return "", errors2.ErrBadToken
+	}
+
+	return strings.TrimPrefix(token, bearerPrefix), nil
 }

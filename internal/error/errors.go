@@ -15,4 +15,5 @@ var (
 	ErrBadToken           = errors.New("Фиговый токен!")
 	ErrTokenExpired       = errors.New("Токен истёк!")
 	ErrWrongPassOrLog     = errors.New("Неверный логин или пароль!")
+	ErrEmptyToken         = errors.New("Пустой токен!")
 )
