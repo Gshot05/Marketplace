@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"marketplace/internal/auth"
-	errors2 "marketplace/internal/error"
 	"marketplace/internal/utils"
 	"net/http"
 
@@ -18,7 +17,7 @@ func AuthMiddleware(c *gin.Context) {
 
 	claims, err := auth.ParseToken(token)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errors2.ErrBadToken})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
