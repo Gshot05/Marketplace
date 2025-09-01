@@ -4,6 +4,7 @@ import (
 	"marketplace/internal/auth"
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
+	"marketplace/internal/service"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -11,16 +12,16 @@ import (
 )
 
 type AuthHandler struct {
-	repo   AuthRepo
+	s      service.IAuthService
 	logger *logger.Logger
 }
 
 func NewAuthHandler(
-	repo AuthRepo,
+	s service.IAuthService,
 	logger *logger.Logger,
 ) *AuthHandler {
 	return &AuthHandler{
-		repo:   repo,
+		s:      s,
 		logger: logger}
 }
 
@@ -34,22 +35,7 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 		}
 		h.logger.Info("Запрос на регистрацию: %v", r)
 
-		if err := utils.ValidateEmail(r.Email); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		if err := utils.ValidateName(r.Name); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		if err := utils.CheckRole(r.Role); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		userID, err := h.repo.RegisterUser(c.Request.Context(), r.Email, r.Password, r.Role, r.Name)
+		userID, err := h.s.RegisterUser(c.Request.Context(), r.Email, r.Password, r.Role, r.Name)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -76,7 +62,7 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 		}
 		h.logger.Info("Залогиновшийся юзер: %v", r)
 
-		user, err := h.repo.GetUserByEmail(c.Request.Context(), r.Email)
+		user, err := h.s.LoginUser(c.Request.Context(), r.Email)
 		if err != nil {
 			c.JSON(401, gin.H{"error": "Неверный логин или пароль"})
 			return

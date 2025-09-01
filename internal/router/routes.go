@@ -5,6 +5,7 @@ import (
 	"marketplace/internal/logger"
 	"marketplace/internal/middleware"
 	repository "marketplace/internal/repo"
+	"marketplace/internal/service"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -30,7 +31,8 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	// Auth
 	auth := r.Group("/auth")
 	authRepo := repository.NewAuthRepo(pool)
-	authHandler := handlers.NewAuthHandler(authRepo, logger)
+	authService := service.NewAuthService(authRepo)
+	authHandler := handlers.NewAuthHandler(authService, logger)
 	auth.POST("/register", authHandler.Register())
 	auth.POST("/login", authHandler.Login())
 
@@ -40,7 +42,8 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	// Offers
 	offerRepo := repository.NewOfferRepository(pool)
-	offerHandler := handlers.NewOfferHandler(offerRepo, logger)
+	offerService := service.NewOfferService(offerRepo)
+	offerHandler := handlers.NewOfferHandler(offerService, logger)
 	v1.POST("/offers", offerHandler.CreateOffer())
 	v1.PATCH("/offers", offerHandler.UpdateOffer())
 	v1.DELETE("/offers", offerHandler.DeleteOffer())
@@ -48,7 +51,8 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	// Services
 	serviceRepo := repository.NewServiceRepository(pool)
-	serviceHandler := handlers.NewServiceHandler(serviceRepo, logger)
+	serviceService := service.NewServiceService(serviceRepo)
+	serviceHandler := handlers.NewServiceHandler(serviceService, logger)
 	v1.POST("/services", serviceHandler.CreateService())
 	v1.PATCH("/services", serviceHandler.UpdateService())
 	v1.DELETE("/services", serviceHandler.DeleteService())
@@ -56,7 +60,8 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 
 	// Favorites
 	favoriteRepo := repository.NewFavoriteRepository(pool)
-	favoriteHandler := handlers.NewFavoriteHandler(favoriteRepo, logger)
+	favoriteService := service.NewFavoriteService(favoriteRepo)
+	favoriteHandler := handlers.NewFavoriteHandler(favoriteService, logger)
 	v1.POST("/favorites", favoriteHandler.AddFavorite())
 	v1.DELETE("/favorites", favoriteHandler.DeleteFavorite())
 	v1.GET("/favorites", favoriteHandler.ListFavorites())

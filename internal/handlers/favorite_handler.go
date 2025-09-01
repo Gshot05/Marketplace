@@ -3,22 +3,23 @@ package handlers
 import (
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
+	"marketplace/internal/service"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type FavoriteHandler struct {
-	repo   FavoriteRepo
+	s      service.IFavoriteService
 	logger *logger.Logger
 }
 
 func NewFavoriteHandler(
-	repo FavoriteRepo,
+	s service.IFavoriteService,
 	logger *logger.Logger,
 ) *FavoriteHandler {
 	return &FavoriteHandler{
-		repo:   repo,
+		s:      s,
 		logger: logger}
 }
 
@@ -40,7 +41,7 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 		}
 		h.logger.Info("Запрос на добавление: %v", r)
 
-		fav, err := h.repo.Add(c.Request.Context(), customerID, r.ServiceID)
+		fav, err := h.s.AddFavorite(c.Request.Context(), customerID, r.ServiceID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -68,7 +69,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 			return
 		}
 
-		deleted, err := h.repo.Delete(c.Request.Context(), customerID, r.ServiceID)
+		deleted, err := h.s.DeleteFavorite(c.Request.Context(), customerID, r.ServiceID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -87,7 +88,7 @@ func (h *FavoriteHandler) ListFavorites() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		customerID := c.GetUint("user_id")
 
-		favorites, err := h.repo.List(c.Request.Context(), customerID)
+		favorites, err := h.s.ListFavorites(c.Request.Context(), customerID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -97,7 +98,6 @@ func (h *FavoriteHandler) ListFavorites() gin.HandlerFunc {
 			c.JSON(404, gin.H{"error": "Избранное пусто:("})
 			return
 		}
-
 		c.JSON(200, favorites)
 	}
 }

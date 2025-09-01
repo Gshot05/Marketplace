@@ -3,21 +3,22 @@ package handlers
 import (
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
+	"marketplace/internal/service"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type OfferHandler struct {
-	repo   OfferRepo
+	s      service.IOfferService
 	logger *logger.Logger
 }
 
 func NewOfferHandler(
-	repo OfferRepo,
+	s service.IOfferService,
 	logger *logger.Logger) *OfferHandler {
 	return &OfferHandler{
-		repo:   repo,
+		s:      s,
 		logger: logger,
 	}
 }
@@ -40,7 +41,7 @@ func (h *OfferHandler) CreateOffer() gin.HandlerFunc {
 		}
 		h.logger.Info("Оффер который пришёл: %v", r)
 
-		offer, err := h.repo.Create(c.Request.Context(), customerID, r.Title, r.Description, r.Price)
+		offer, err := h.s.CreateOffer(c.Request.Context(), customerID, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -69,7 +70,7 @@ func (h *OfferHandler) UpdateOffer() gin.HandlerFunc {
 		}
 		h.logger.Info("Оффер который пришёл: %v", r)
 
-		offer, err := h.repo.Update(c.Request.Context(), r.OfferID, customerID, r.Title, r.Description, r.Price)
+		offer, err := h.s.UpdateOffer(c.Request.Context(), r.OfferID, customerID, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -97,7 +98,7 @@ func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 			return
 		}
 
-		deleted, err := h.repo.Delete(c.Request.Context(), r.OfferID, customerID)
+		deleted, err := h.s.DeleteOffer(c.Request.Context(), r.OfferID, customerID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -114,7 +115,7 @@ func (h *OfferHandler) DeleteOffer() gin.HandlerFunc {
 
 func (h *OfferHandler) ListOffers() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		offers, err := h.repo.List(c.Request.Context())
+		offers, err := h.s.ListOffers(c.Request.Context())
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

@@ -3,22 +3,23 @@ package handlers
 import (
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
+	"marketplace/internal/service"
 	"marketplace/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ServiceHandler struct {
-	repo   ServiceRepo
+	s      service.IServiceService
 	logger *logger.Logger
 }
 
 func NewServiceHandler(
-	repo ServiceRepo,
+	s service.IServiceService,
 	logger *logger.Logger,
 ) *ServiceHandler {
 	return &ServiceHandler{
-		repo:   repo,
+		s:      s,
 		logger: logger}
 }
 
@@ -40,7 +41,7 @@ func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 		}
 		h.logger.Info("Сервис который пришёл: %v", r)
 
-		service, err := h.repo.Create(c.Request.Context(), performerID, r.Title, r.Description, r.Price)
+		service, err := h.s.CreateService(c.Request.Context(), performerID, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -69,7 +70,7 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 		}
 		h.logger.Info("Сервис который пришёл: %v", r)
 
-		service, err := h.repo.Update(c.Request.Context(), r.ServiceID, performerID, r.Title, r.Description, r.Price)
+		service, err := h.s.UpdateService(c.Request.Context(), r.ServiceID, performerID, r.Title, r.Description, r.Price)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -97,7 +98,7 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 			return
 		}
 
-		deleted, err := h.repo.Delete(c.Request.Context(), r.ServiceID, performerID)
+		deleted, err := h.s.DeleteService(c.Request.Context(), r.ServiceID, performerID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -114,7 +115,7 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 
 func (h *ServiceHandler) ListServices() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		services, err := h.repo.List(c.Request.Context())
+		services, err := h.s.ListServices(c.Request.Context())
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
