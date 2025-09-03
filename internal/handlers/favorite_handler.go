@@ -5,6 +5,7 @@ import (
 	"marketplace/internal/model"
 	"marketplace/internal/service"
 	"marketplace/internal/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +29,7 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 		customerID, err := utils.CheckCustomerRole(c)
 		if err != nil {
 			h.logger.Error("Ошибка проверки роли: %v", customerID)
-			c.JSON(403, gin.H{"error": err.Error()})
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
 		h.logger.Info("Запрос на добавление в избранное от человека с ID: %v", customerID)
@@ -36,19 +37,19 @@ func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
 			h.logger.Error("Ошибка при работе с JSON: %v", err)
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		h.logger.Info("Запрос на добавление: %v", r)
 
 		fav, err := h.s.AddFavorite(c.Request.Context(), customerID, r.ServiceID)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		h.logger.Info("Добавленное избранное: %v", fav)
 
-		c.JSON(200, fav)
+		c.JSON(http.StatusOK, fav)
 	}
 }
 
@@ -57,7 +58,7 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 		customerID, err := utils.CheckCustomerRole(c)
 		if err != nil {
 			h.logger.Error("Ошибка проверки роли: %v", err)
-			c.JSON(403, gin.H{"error": err.Error()})
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
 		h.logger.Info("Удаление из избранного от человека с ID: %v", customerID)
@@ -65,22 +66,22 @@ func (h *FavoriteHandler) DeleteFavorite() gin.HandlerFunc {
 		r, err := utils.BindJSON[model.GeneralServiceIdReq](c)
 		if err != nil {
 			h.logger.Error("Ошибка при работе с JSON: %v", err)
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		deleted, err := h.s.DeleteFavorite(c.Request.Context(), customerID, r.ServiceID)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		if !deleted {
-			c.JSON(404, gin.H{"error": "Избранное не найдено или вам не принадлежит!"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Избранное не найдено или вам не принадлежит!"})
 			return
 		}
 
-		c.JSON(200, gin.H{"success": "Успешно!"})
+		c.JSON(http.StatusOK, gin.H{"success": "Успешно!"})
 	}
 }
 
@@ -90,14 +91,14 @@ func (h *FavoriteHandler) ListFavorites() gin.HandlerFunc {
 
 		favorites, err := h.s.ListFavorites(c.Request.Context(), customerID)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		if len(favorites) == 0 {
-			c.JSON(404, gin.H{"error": "Избранное пусто:("})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Избранное пусто:("})
 			return
 		}
-		c.JSON(200, favorites)
+		c.JSON(http.StatusOK, favorites)
 	}
 }
