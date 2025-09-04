@@ -1,6 +1,24 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    container_name: marketplace_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=0Qwerty12$&
+      - DB_NAME=marketplace
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+      - /app/go.mod  
+
   postgres:
     image: postgres:15
     container_name: marketplace_pg
