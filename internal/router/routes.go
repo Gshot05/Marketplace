@@ -14,14 +14,13 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
-
 	// CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080"},
-		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE"},
-		AllowHeaders:     []string{"Authorization", "Content-Type"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type", "Accept", "Origin"},
+		ExposeHeaders:    []string{"Content-Length", "Authorization"},
+		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
 	}))
 
