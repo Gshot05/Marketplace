@@ -34,8 +34,24 @@ CREATE TABLE IF NOT EXISTS favorites (
 );
 
 CREATE TABLE IF NOT EXISTS logs (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   level VARCHAR(10) NOT NULL,          
   message TEXT NOT NULL,               
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id SERIAL PRIMARY KEY,
+  reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  offer_id INTEGER REFERENCES offers(id) ON DELETE CASCADE,
+  service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
+  description TEXT,
+  rate INTEGER NOT NULL CHECK (rate >= 1 AND rate <= 5),
+  CHECK (
+    (offer_id IS NOT NULL AND service_id IS NULL)
+    OR
+    (service_id IS NOT NULL AND offer_id IS NULL)
+  ),
+  UNIQUE (reviewer_id, offer_id),
+  UNIQUE (reviewer_id, service_id)
 );
