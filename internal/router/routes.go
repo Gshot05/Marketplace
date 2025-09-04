@@ -16,11 +16,11 @@ import (
 func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	// CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:8080"},
 		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "Accept", "Origin"},
 		ExposeHeaders:    []string{"Content-Length", "Authorization"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
