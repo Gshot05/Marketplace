@@ -8,25 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ValidateEmail(email string) error {
-	_, err := mail.ParseAddress(email)
-	return err
-}
-
-func ValidateName(name string) error {
-	if name == "" || name == " " {
-		return errors2.ErrEmptyName
-	}
-	return nil
-}
-
-func CheckRole(role string) error {
-	if role == "" || role == " " {
-		return errors2.ErrEmptyRole
-	}
-	return nil
-}
-
 func ValidateIncomingRegistration(email, name, role string) error {
 	_, err := mail.ParseAddress(email)
 	if err != nil {
