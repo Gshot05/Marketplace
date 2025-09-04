@@ -18,19 +18,16 @@ func NewAuthService(repo repository.IAuthRepo) *AuthService {
 }
 
 func (s *AuthService) RegisterUser(ctx context.Context, email, password, role, name string) (uint, error) {
-	if err := utils.ValidateEmail(email); err != nil {
+	err := utils.ValidateIncomingRegistration(email, name, role)
+	if err != nil {
 		return 0, err
 	}
-	if err := utils.ValidateName(name); err != nil {
-		return 0, err
-	}
-	if err := utils.CheckRole(role); err != nil {
-		return 0, err
-	}
+
 	userID, err := s.repo.RegisterUser(ctx, email, password, role, name)
 	if err != nil {
 		return 0, err
 	}
+
 	return userID, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
+	"marketplace/internal/utils"
 )
 
 type OfferService struct {
@@ -17,6 +18,11 @@ func NewOfferService(repo repository.IOfferRepo) *OfferService {
 }
 
 func (s *OfferService) CreateOffer(ctx context.Context, customerID uint, title, description string, price float64) (*model.Offer, error) {
+	err := utils.IncomingCreationValidation(title, description, price)
+	if err != nil {
+		return nil, err
+	}
+
 	offer, err := s.repo.Create(ctx, customerID, title, description, price)
 	if err != nil {
 		return nil, err
@@ -25,6 +31,11 @@ func (s *OfferService) CreateOffer(ctx context.Context, customerID uint, title, 
 }
 
 func (s *OfferService) UpdateOffer(ctx context.Context, offerID, customerID uint, title, description string, price float64) (*model.Offer, error) {
+	err := utils.IncomingCreationValidation(title, description, price)
+	if err != nil {
+		return nil, err
+	}
+
 	offer, err := s.repo.Update(ctx, offerID, customerID, title, description, price)
 	if err != nil {
 		return nil, err

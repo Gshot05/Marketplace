@@ -4,6 +4,7 @@ import (
 	"context"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
+	"marketplace/internal/utils"
 )
 
 type ServiceService struct {
@@ -17,6 +18,11 @@ func NewServiceService(repo repository.IServiceRepo) *ServiceService {
 }
 
 func (s *ServiceService) CreateService(ctx context.Context, performerID uint, title, description string, price float64) (*model.Service, error) {
+	err := utils.IncomingCreationValidation(title, description, price)
+	if err != nil {
+		return nil, err
+	}
+
 	service, err := s.repo.Create(ctx, performerID, title, description, price)
 	if err != nil {
 		return nil, err
@@ -25,6 +31,11 @@ func (s *ServiceService) CreateService(ctx context.Context, performerID uint, ti
 }
 
 func (s *ServiceService) UpdateService(ctx context.Context, serviceID, performerID uint, title, description string, price float64) (*model.Service, error) {
+	err := utils.IncomingCreationValidation(title, description, price)
+	if err != nil {
+		return nil, err
+	}
+
 	service, err := s.repo.Update(ctx, serviceID, performerID, title, description, price)
 	if err != nil {
 		return nil, err

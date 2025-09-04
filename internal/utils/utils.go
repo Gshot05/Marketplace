@@ -27,6 +27,23 @@ func CheckRole(role string) error {
 	return nil
 }
 
+func ValidateIncomingRegistration(email, name, role string) error {
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return err
+	}
+
+	if name == "" || name == " " {
+		return errors2.ErrEmptyName
+	}
+
+	if role == "" || role == " " {
+		return errors2.ErrEmptyRole
+	}
+
+	return nil
+}
+
 func CheckCustomerRole(c *gin.Context) (uint, error) {
 	uid := c.GetUint("user_id")
 	role := c.GetString("role")
@@ -68,4 +85,22 @@ func ValidateBearerToken(token string) (string, error) {
 	}
 
 	return strings.TrimPrefix(token, bearerPrefix), nil
+}
+
+func IncomingCreationValidation(title, description string, price float64) error {
+	title = strings.TrimSpace(title)
+	if title == "" || title == " " {
+		return errors2.ErrEmptyTitle
+	}
+
+	description = strings.TrimSpace(description)
+	if description == "" || description == " " {
+		return errors2.ErrEmptyDescription
+	}
+
+	if price <= 0 {
+		return errors2.ErrEmptyPrice
+	}
+
+	return nil
 }
