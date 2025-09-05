@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	errors2 "marketplace/internal/error"
+	"marketplace/internal/model"
 	"os"
 	"time"
 
@@ -11,14 +12,8 @@ import (
 
 var jwtKey = []byte(os.Getenv("JWT_SECRET"))
 
-type Claims struct {
-	UserID uint   `json:"user_id"`
-	Role   string `json:"role"`
-	jwt.RegisteredClaims
-}
-
 func GenerateToken(userID uint, role string) (string, error) {
-	claims := &Claims{
+	claims := &model.Claims{
 		UserID: userID,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -29,8 +24,8 @@ func GenerateToken(userID uint, role string) (string, error) {
 	return token.SignedString(jwtKey)
 }
 
-func ParseToken(tokenStr string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+func ParseToken(tokenStr string) (*model.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
 	if err != nil {
@@ -39,7 +34,7 @@ func ParseToken(tokenStr string) (*Claims, error) {
 		}
 		return nil, err
 	}
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+	if claims, ok := token.Claims.(*model.Claims); ok && token.Valid {
 		return claims, nil
 	}
 	return nil, errors2.ErrBadToken
