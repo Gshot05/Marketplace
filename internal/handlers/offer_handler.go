@@ -121,12 +121,6 @@ func (h *OfferHandler) ListOffers() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		if len(offers) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Офферов пока нет:("})
-			return
-		}
-
 		c.JSON(http.StatusOK, offers)
 	}
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	errors2 "marketplace/internal/error"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
@@ -27,6 +28,7 @@ func (s *ServiceService) CreateService(ctx context.Context, performerID uint, ti
 	if err != nil {
 		return nil, err
 	}
+
 	return service, nil
 }
 
@@ -40,6 +42,7 @@ func (s *ServiceService) UpdateService(ctx context.Context, serviceID, performer
 	if err != nil {
 		return nil, err
 	}
+
 	return service, nil
 }
 
@@ -48,6 +51,7 @@ func (s *ServiceService) DeleteService(ctx context.Context, serviceID, performer
 	if err != nil {
 		return deleted, err
 	}
+
 	return deleted, nil
 }
 
@@ -56,5 +60,10 @@ func (s *ServiceService) ListServices(ctx context.Context) ([]model.Service, err
 	if err != nil {
 		return nil, err
 	}
+
+	if len(service) == 0 {
+		return nil, errors2.ErrEmptyServices
+	}
+
 	return service, nil
 }

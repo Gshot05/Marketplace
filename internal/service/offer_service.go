@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	errors2 "marketplace/internal/error"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
@@ -27,6 +28,7 @@ func (s *OfferService) CreateOffer(ctx context.Context, customerID uint, title, 
 	if err != nil {
 		return nil, err
 	}
+
 	return offer, nil
 }
 
@@ -40,6 +42,7 @@ func (s *OfferService) UpdateOffer(ctx context.Context, offerID, customerID uint
 	if err != nil {
 		return nil, err
 	}
+
 	return offer, nil
 }
 
@@ -48,6 +51,7 @@ func (s *OfferService) DeleteOffer(ctx context.Context, offerID, customerID uint
 	if err != nil {
 		return deleted, err
 	}
+
 	return deleted, nil
 }
 
@@ -56,5 +60,10 @@ func (s *OfferService) ListOffers(ctx context.Context) ([]model.Offer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(offer) == 0 {
+		return nil, errors2.ErrEmptyOffers
+	}
+
 	return offer, nil
 }

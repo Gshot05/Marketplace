@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	errors2 "marketplace/internal/error"
 	"marketplace/internal/model"
 	repository "marketplace/internal/repo"
 )
@@ -21,6 +22,7 @@ func (s *FavoriteService) AddFavorite(ctx context.Context, customerID, serviceID
 	if err != nil {
 		return nil, err
 	}
+
 	return fav, nil
 }
 
@@ -29,6 +31,7 @@ func (s *FavoriteService) DeleteFavorite(ctx context.Context, customerID, servic
 	if err != nil {
 		return deleted, err
 	}
+
 	return deleted, nil
 }
 
@@ -37,5 +40,10 @@ func (s *FavoriteService) ListFavorites(ctx context.Context, customerID uint) ([
 	if err != nil {
 		return nil, err
 	}
+
+	if len(fav) == 0 {
+		return nil, errors2.ErrEmptyFav
+	}
+
 	return fav, nil
 }

@@ -15,6 +15,9 @@ var (
 	ErrEmptyTitle       = errors.New("Заголовок не может быть пустым!")
 	ErrEmptyDescription = errors.New("Описание не может быть пустым!")
 	ErrEmptyPrice       = errors.New("Цена не может быть пустой!")
+	ErrEmptyOffers      = errors.New("Офферов пока нет:(")
+	ErrEmptyServices    = errors.New("Услуг пока нет:(")
+	ErrEmptyFav         = errors.New("Избранное пока пусто:(")
 
 	//ErrWrong group
 	ErrWrongJson          = errors.New("Неверный формат запроса!")

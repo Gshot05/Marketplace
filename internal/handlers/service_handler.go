@@ -121,12 +121,6 @@ func (h *ServiceHandler) ListServices() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		if len(services) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Услуг пока нет:("})
-			return
-		}
-
 		c.JSON(200, services)
 	}
 }

@@ -94,11 +94,6 @@ func (h *FavoriteHandler) ListFavorites() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		if len(favorites) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Избранное пусто:("})
-			return
-		}
 		c.JSON(http.StatusOK, favorites)
 	}
 }
