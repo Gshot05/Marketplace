@@ -49,7 +49,7 @@ func (h *ServiceHandler) CreateService() gin.HandlerFunc {
 		}
 		h.logger.Info("Созданный сервис %v", service)
 
-		c.JSON(200, service)
+		c.JSON(http.StatusOK, service)
 	}
 }
 
@@ -78,7 +78,7 @@ func (h *ServiceHandler) UpdateService() gin.HandlerFunc {
 		}
 		h.logger.Info("Обновлённый оффер %v", service)
 
-		c.JSON(200, service)
+		c.JSON(http.StatusOK, service)
 	}
 }
 
@@ -110,7 +110,7 @@ func (h *ServiceHandler) DeleteService() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(200, gin.H{"success": "Успешно!"})
+		c.JSON(http.StatusOK, gin.H{"success": "Успешно!"})
 	}
 }
 
@@ -121,6 +121,6 @@ func (h *ServiceHandler) ListServices() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(200, services)
+		c.JSON(http.StatusOK, services)
 	}
 }
