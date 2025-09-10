@@ -21,7 +21,8 @@ func NewServiceHandler(
 ) *ServiceHandler {
 	return &ServiceHandler{
 		s:      s,
-		logger: logger}
+		logger: logger,
+	}
 }
 
 func (h *ServiceHandler) CreateService() gin.HandlerFunc {

@@ -21,7 +21,8 @@ func NewFavoriteHandler(
 ) *FavoriteHandler {
 	return &FavoriteHandler{
 		s:      s,
-		logger: logger}
+		logger: logger,
+	}
 }
 
 func (h *FavoriteHandler) AddFavorite() gin.HandlerFunc {

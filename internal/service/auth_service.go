@@ -13,8 +13,10 @@ type AuthService struct {
 	notifications notifications.INotifications
 }
 
-func NewAuthService(repo repository.IAuthRepo,
-	notifications notifications.INotifications) *AuthService {
+func NewAuthService(
+	repo repository.IAuthRepo,
+	notifications notifications.INotifications,
+) *AuthService {
 	return &AuthService{
 		repo:          repo,
 		notifications: notifications,

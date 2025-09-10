@@ -23,7 +23,8 @@ func NewAuthHandler(
 ) *AuthHandler {
 	return &AuthHandler{
 		s:      s,
-		logger: logger}
+		logger: logger,
+	}
 }
 
 func (h *AuthHandler) Register() gin.HandlerFunc {
