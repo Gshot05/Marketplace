@@ -4,6 +4,7 @@ import (
 	"marketplace/internal/handlers"
 	"marketplace/internal/logger"
 	"marketplace/internal/middleware"
+	"marketplace/internal/notifications"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/service"
 	"time"
@@ -27,10 +28,13 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	// Logger
 	logger := logger.NewLogger(pool)
 
+	//notifications
+	notifications := notifications.NewEmailNotifier()
+
 	// Auth
 	auth := r.Group("/auth")
 	authRepo := repository.NewAuthRepo(pool)
-	authService := service.NewAuthService(authRepo)
+	authService := service.NewAuthService(authRepo, notifications)
 	authHandler := handlers.NewAuthHandler(authService, logger)
 	auth.POST("/register", authHandler.Register())
 	auth.POST("/login", authHandler.Login())

@@ -29,4 +29,5 @@ var (
 	ErrNoAuth       = errors.New("Нет авторизации!")
 	ErrBadToken     = errors.New("Фиговый токен!")
 	ErrTokenExpired = errors.New("Токен истёк!")
+	ErrEmailSent    = errors.New("Не удалось отправить письмо!")
 )
