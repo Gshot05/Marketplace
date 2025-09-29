@@ -2,6 +2,7 @@ package notifications
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -33,12 +34,12 @@ func NewEmailNotifierWithParams(host string, port int, from, smtpUser, smtpPass 
 	return &EmailNotifier{from: from, dialer: d}
 }
 
-func (n *EmailNotifier) SendRegistrationSuccess(ctx context.Context, to string) error {
+func (n *EmailNotifier) SendVerificationCode(ctx context.Context, to, code string) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", n.from)
 	msg.SetHeader("To", to)
-	msg.SetHeader("Subject", "Добро пожаловать!")
-	msg.SetBody("text/plain", "Ваша почта успешно зарегистрирована.")
+	msg.SetHeader("Subject", "Код подтверждения регистрации")
+	msg.SetBody("text/plain", fmt.Sprintf("Ваш код подтверждения: %s\nКод действителен в течение 15 минут.", code))
 
 	return n.dialer.DialAndSend(msg)
 }

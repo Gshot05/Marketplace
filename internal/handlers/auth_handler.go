@@ -37,16 +37,28 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 		}
 		h.logger.Info("Запрос на регистрацию: %v", r)
 
-		userID, err := h.s.RegisterUser(c.Request.Context(), r.Email, r.Password, r.Role, r.Name)
+		err = h.s.RegisterUser(c.Request.Context(), r.Email, r.Password, r.Role, r.Name)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		h.logger.Info("ID созданого юзера: %v", userID)
 
-		token, err := auth.GenerateToken(userID, r.Role)
+		c.JSON(http.StatusOK, gin.H{"message": "Подтвердите почту"})
+	}
+}
+
+func (h *AuthHandler) ConfirmEmail() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		r, err := utils.BindJSON[model.VerifyUser](c)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "token generation failed"})
+			h.logger.Error("Ошибка при работе с JSON: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		token, err := h.s.ConfirmEmail(c.Request.Context(), r.Email, r.VerifyCode, r.Password, r.Role, r.Name)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 

@@ -3,6 +3,6 @@ package notifications
 import "context"
 
 type INotifications interface {
-	SendRegistrationSuccess(ctx context.Context, to string) error
+	SendVerificationCode(ctx context.Context, to, code string) error
 	SendLoginNotification(ctx context.Context, to string) error
 }

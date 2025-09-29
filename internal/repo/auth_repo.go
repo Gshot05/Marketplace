@@ -5,6 +5,7 @@ import (
 	"errors"
 	errors2 "marketplace/internal/error"
 	"marketplace/internal/model"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx"
@@ -40,6 +41,64 @@ func (r *AuthRepo) RegisterUser(ctx context.Context, email, password, role, name
 	var id uint
 	err = r.pool.QueryRow(ctx, sql, args...).Scan(&id)
 	return id, err
+}
+
+func (r *AuthRepo) VerifyCode(ctx context.Context, email, code string) (bool, error) {
+	query := sq.Select("1").
+		From("verification_codes").
+		Where(sq.Eq{"email": email}).
+		Where(sq.Eq{"code": code}).
+		Where("expires_at > NOW()").
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+
+	var exists int
+	err = r.pool.QueryRow(ctx, sql, args...).Scan(&exists)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (r *AuthRepo) DeleteUsedCode(ctx context.Context, email string) error {
+	query := sq.Delete("verification_codes").
+		Where(sq.Eq{"email": email}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.pool.Exec(ctx, sql, args...)
+	return err
+}
+
+func (r *AuthRepo) SaveVerificationCode(ctx context.Context, email, code string) error {
+	// Код действителен 15 минут
+	expiresAt := time.Now().Add(15 * time.Minute)
+
+	query := sq.Insert("verification_codes").
+		Columns("email", "code", "expires_at").
+		Values(email, code, expiresAt).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.pool.Exec(ctx, sql, args...)
+	return err
 }
 
 func (r *AuthRepo) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {

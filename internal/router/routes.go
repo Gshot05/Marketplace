@@ -38,6 +38,7 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	authHandler := handlers.NewAuthHandler(authService, logger)
 	auth.POST("/register", authHandler.Register())
 	auth.POST("/login", authHandler.Login())
+	auth.POST("/confirm", authHandler.ConfirmEmail())
 
 	// Handlers group
 	v1 := r.Group("/api")
