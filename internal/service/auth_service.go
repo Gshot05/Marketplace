@@ -70,7 +70,7 @@ func (s *AuthService) ConfirmEmail(ctx context.Context, email, code, password, r
 
 	token, err := auth.GenerateToken(userID, role)
 	if err != nil {
-		return "", err
+		return "", errors2.ErrCreateToken
 	}
 
 	return token, nil
