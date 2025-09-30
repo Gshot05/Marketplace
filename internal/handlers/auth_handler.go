@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"marketplace/internal/auth"
 	"marketplace/internal/logger"
 	"marketplace/internal/model"
 	"marketplace/internal/service"
@@ -9,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthHandler struct {
@@ -76,24 +74,9 @@ func (h *AuthHandler) Login() gin.HandlerFunc {
 		}
 		h.logger.Info("Залогиновшийся юзер: %v", r)
 
-		user, err := h.s.LoginUser(c.Request.Context(), r.Email)
+		token, err := h.s.LoginUser(c.Request.Context(), r.Email, r.Password)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный логин или пароль"})
-			return
-		}
-		h.logger.Info("Залогиновшийся юзер: %v", user)
-
-		if err := bcrypt.CompareHashAndPassword(
-			[]byte(user.PasswordHash),
-			[]byte(r.Password),
-		); err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный логин или пароль"})
-			return
-		}
-
-		token, err := auth.GenerateToken(user.ID, user.Role)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка генерации токена"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 

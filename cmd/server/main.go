@@ -30,12 +30,12 @@ func main() {
 			log.Fatalf("Ошибка запуска сервера: %s\n", err)
 		}
 	}()
-	log.Println("Сервер запущен на :8080")
+	log.Println("Сервер запущен на: 8080")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Отанавливаем сервер...")
+	log.Println("Останавливаем сервер...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -20,7 +20,10 @@ paths:
   /auth/register:
     post:
       tags: [auth]
-      summary: Регистрация нового пользователя
+      summary: Начало регистрации - отправка кода подтверждения на email
+      description: |
+        Отправляет 6-значный код подтверждения на указанный email.
+        Для завершения регистрации необходимо подтвердить email через /auth/confirm.
       requestBody:
         required: true
         content:
@@ -29,13 +32,67 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '200':
-          description: Успешная регистрация
+          description: Код подтверждения отправлен на email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Подтвердите почту"
+        '400':
+          description: Неверные входные данные
+        '500':
+          description: Ошибка сервера
+
+  /auth/confirm:
+    post:
+      tags: [auth]
+      summary: Подтверждение email и завершение регистрации
+      description: |
+        Подтверждение email с помощью кода, полученного в письме.
+        После успешного подтверждения создается пользователь и выдается JWT токен.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, verifyCode, password, role, name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                verifyCode:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  description: 6-значный код подтверждения из email
+                  example: "123456"
+                password:
+                  type: string
+                  minLength: 8
+                  example: securePassword123
+                role:
+                  type: string
+                  enum: [customer, performer]
+                  example: customer
+                name:
+                  type: string
+                  example: Иван Иванов
+      responses:
+        '200':
+          description: Успешное подтверждение email
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '400':
-          description: Неверные входные данные
+          description: |
+            Возможные ошибки:
+            - Неверный или просроченный код подтверждения
+            - Неверные входные данные
         '409':
           description: Email уже занят
         '500':

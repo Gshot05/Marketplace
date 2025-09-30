@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
-	"errors"
 	"marketplace/internal/auth"
-	"marketplace/internal/model"
+	errors2 "marketplace/internal/error"
 	"marketplace/internal/notifications"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
@@ -51,10 +52,10 @@ func (s *AuthService) RegisterUser(ctx context.Context, email, password, role, n
 func (s *AuthService) ConfirmEmail(ctx context.Context, email, code, password, role, name string) (string, error) {
 	valid, err := s.repo.VerifyCode(ctx, email, code)
 	if err != nil {
-		return "", err
+		return "", errors2.ErrWrongConfirmData
 	}
 	if !valid {
-		return "", errors.New("неверный или просроченный код подтверждения")
+		return "", errors2.ErrWrongVerify
 	}
 
 	userID, err := s.repo.RegisterUser(ctx, email, password, role, name)
@@ -64,6 +65,7 @@ func (s *AuthService) ConfirmEmail(ctx context.Context, email, code, password, r
 
 	err = s.repo.DeleteUsedCode(ctx, email)
 	if err != nil {
+		return "", err
 	}
 
 	token, err := auth.GenerateToken(userID, role)
@@ -74,10 +76,22 @@ func (s *AuthService) ConfirmEmail(ctx context.Context, email, code, password, r
 	return token, nil
 }
 
-func (s *AuthService) LoginUser(ctx context.Context, email string) (*model.User, error) {
+func (s *AuthService) LoginUser(ctx context.Context, email, password string) (string, error) {
 	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(
+		[]byte(user.PasswordHash),
+		[]byte(password),
+	); err != nil {
+		return "", errors2.ErrWrongPassOrLog
+	}
+
+	token, err := auth.GenerateToken(user.ID, user.Role)
+	if err != nil {
+		return "", errors2.ErrCreateToken
 	}
 
 	go func() {
@@ -87,5 +101,5 @@ func (s *AuthService) LoginUser(ctx context.Context, email string) (*model.User,
 		}
 	}()
 
-	return user, nil
+	return token, nil
 }

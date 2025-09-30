@@ -27,6 +27,6 @@ type IFavoriteService interface {
 
 type IAuthService interface {
 	RegisterUser(ctx context.Context, email, password, role, name string) error
-	LoginUser(ctx context.Context, email string) (*model.User, error)
+	LoginUser(ctx context.Context, email, password string) (string, error)
 	ConfirmEmail(ctx context.Context, email, code, password, role, name string) (string, error)
 }

@@ -26,8 +26,11 @@ var (
 	ErrWrongPassOrLog     = errors.New("Неверный логин или пароль!")
 
 	//ErrAuth group
-	ErrNoAuth       = errors.New("Нет авторизации!")
-	ErrBadToken     = errors.New("Фиговый токен!")
-	ErrTokenExpired = errors.New("Токен истёк!")
-	ErrEmailSent    = errors.New("Не удалось отправить письмо!")
+	ErrNoAuth           = errors.New("Нет авторизации!")
+	ErrBadToken         = errors.New("Фиговый токен!")
+	ErrTokenExpired     = errors.New("Токен истёк!")
+	ErrEmailSent        = errors.New("Не удалось отправить письмо!")
+	ErrWrongVerify      = errors.New("Неверный или просроченный код подтверждения!")
+	ErrCreateToken      = errors.New("Oшибка генерации токена!")
+	ErrWrongConfirmData = errors.New("Данные для верификации не совпадают!")
 )
