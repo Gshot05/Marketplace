@@ -4,6 +4,7 @@ import (
 	errors2 "marketplace/internal/error"
 	"net/mail"
 	"strings"
+	"time"
 )
 
 func ValidateIncomingRegistration(email, name, role string) error {
@@ -53,5 +54,12 @@ func IncomingCreationValidation(title, description string, price float64) error 
 		return errors2.ErrEmptyPrice
 	}
 
+	return nil
+}
+
+func IsDataExpired(createdAt time.Time, maxAge time.Duration) error {
+	if time.Since(createdAt) > maxAge {
+		return errors2.ErrDataExpired
+	}
 	return nil
 }

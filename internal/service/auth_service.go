@@ -64,12 +64,8 @@ func (s *AuthService) RegisterUser(ctx context.Context, email, password, role, n
 }
 
 func (s *AuthService) ConfirmEmail(ctx context.Context, email, code string) (string, error) {
-	valid, err := s.repo.VerifyCode(ctx, email, code)
-	if err != nil {
-		return "", errors2.ErrWrongConfirmData
-	}
-	if !valid {
-		return "", errors2.ErrWrongVerify
+	if err := s.repo.VerifyCode(ctx, email, code); err != nil {
+		return "", err
 	}
 
 	data, exists := pendingRegistrations.Load(email)
@@ -78,8 +74,7 @@ func (s *AuthService) ConfirmEmail(ctx context.Context, email, code string) (str
 	}
 
 	pendingUser := data.(model.PendingUser)
-
-	if time.Since(pendingUser.CreatedAt) > time.Hour {
+	if err := utils.IsDataExpired(pendingUser.CreatedAt, time.Hour); err != nil {
 		pendingRegistrations.Delete(email)
 		return "", errors2.ErrWrongConfirmData
 	}

@@ -28,7 +28,7 @@ type IFavoriteRepo interface {
 type IAuthRepo interface {
 	RegisterUser(ctx context.Context, email, password, role, name string) (uint, error)
 	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
-	VerifyCode(ctx context.Context, email, code string) (bool, error)
+	VerifyCode(ctx context.Context, email, code string) error
 	DeleteUsedCode(ctx context.Context, email string) error
 	SaveVerificationCode(ctx context.Context, email, code string) error
 }

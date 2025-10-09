@@ -43,7 +43,7 @@ func (r *AuthRepo) RegisterUser(ctx context.Context, email, password, role, name
 	return id, err
 }
 
-func (r *AuthRepo) VerifyCode(ctx context.Context, email, code string) (bool, error) {
+func (r *AuthRepo) VerifyCode(ctx context.Context, email, code string) error {
 	query := sq.Select("1").
 		From("verification_codes").
 		Where(sq.Eq{"email": email}).
@@ -53,7 +53,7 @@ func (r *AuthRepo) VerifyCode(ctx context.Context, email, code string) (bool, er
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	var exists int
@@ -61,12 +61,12 @@ func (r *AuthRepo) VerifyCode(ctx context.Context, email, code string) (bool, er
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil
+			return errors2.ErrWrongConfirmData
 		}
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 func (r *AuthRepo) DeleteUsedCode(ctx context.Context, email string) error {

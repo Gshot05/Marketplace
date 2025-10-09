@@ -33,4 +33,5 @@ var (
 	ErrWrongVerify      = errors.New("Неверный или просроченный код подтверждения!")
 	ErrCreateToken      = errors.New("Oшибка генерации токена!")
 	ErrWrongConfirmData = errors.New("Данные для верификации не совпадают!")
+	ErrDataExpired      = errors.New("Данные устарели")
 )
