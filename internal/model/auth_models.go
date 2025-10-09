@@ -1,6 +1,10 @@
 package model
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type (
 	RegisterReq struct {
@@ -19,5 +23,12 @@ type (
 		UserID uint   `json:"user_id"`
 		Role   string `json:"role"`
 		jwt.RegisteredClaims
+	}
+
+	PendingUser struct {
+		Password  string    `json:"-"`
+		Role      string    `json:"role"`
+		Name      string    `json:"name"`
+		CreatedAt time.Time `json:"created_at"`
 	}
 )

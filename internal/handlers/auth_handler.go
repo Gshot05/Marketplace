@@ -48,13 +48,14 @@ func (h *AuthHandler) Register() gin.HandlerFunc {
 func (h *AuthHandler) ConfirmEmail() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r, err := utils.BindJSON[model.VerifyUser](c)
+
 		if err != nil {
 			h.logger.Error("Ошибка при работе с JSON: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		token, err := h.s.ConfirmEmail(c.Request.Context(), r.Email, r.VerifyCode, r.Password, r.Role, r.Name)
+		token, err := h.s.ConfirmEmail(c.Request.Context(), r.Email, r.VerifyCode)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

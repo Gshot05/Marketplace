@@ -4,9 +4,12 @@ import (
 	"context"
 	"marketplace/internal/auth"
 	errors2 "marketplace/internal/error"
+	"marketplace/internal/model"
 	"marketplace/internal/notifications"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
+	"sync"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -26,16 +29,27 @@ func NewAuthService(
 	}
 }
 
+var pendingRegistrations sync.Map
+
 func (s *AuthService) RegisterUser(ctx context.Context, email, password, role, name string) error {
 	err := utils.ValidateIncomingRegistration(email, name, role)
 	if err != nil {
 		return err
 	}
 
+	pendingUser := model.PendingUser{
+		Password:  password,
+		Role:      role,
+		Name:      name,
+		CreatedAt: time.Now(),
+	}
+	pendingRegistrations.Store(email, pendingUser)
+
 	code := utils.GenerateVerificationCode()
 
 	err = s.repo.SaveVerificationCode(ctx, email, code)
 	if err != nil {
+		pendingRegistrations.Delete(email)
 		return err
 	}
 
@@ -49,7 +63,7 @@ func (s *AuthService) RegisterUser(ctx context.Context, email, password, role, n
 	return nil
 }
 
-func (s *AuthService) ConfirmEmail(ctx context.Context, email, code, password, role, name string) (string, error) {
+func (s *AuthService) ConfirmEmail(ctx context.Context, email, code string) (string, error) {
 	valid, err := s.repo.VerifyCode(ctx, email, code)
 	if err != nil {
 		return "", errors2.ErrWrongConfirmData
@@ -58,17 +72,30 @@ func (s *AuthService) ConfirmEmail(ctx context.Context, email, code, password, r
 		return "", errors2.ErrWrongVerify
 	}
 
-	userID, err := s.repo.RegisterUser(ctx, email, password, role, name)
+	data, exists := pendingRegistrations.Load(email)
+	if !exists {
+		return "", errors2.ErrWrongConfirmData
+	}
+
+	pendingUser := data.(model.PendingUser)
+
+	if time.Since(pendingUser.CreatedAt) > time.Hour {
+		pendingRegistrations.Delete(email)
+		return "", errors2.ErrWrongConfirmData
+	}
+
+	userID, err := s.repo.RegisterUser(ctx, email, pendingUser.Password, pendingUser.Role, pendingUser.Name)
 	if err != nil {
 		return "", err
 	}
 
+	pendingRegistrations.Delete(email)
 	err = s.repo.DeleteUsedCode(ctx, email)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := auth.GenerateToken(userID, role)
+	token, err := auth.GenerateToken(userID, pendingUser.Role)
 	if err != nil {
 		return "", errors2.ErrCreateToken
 	}
