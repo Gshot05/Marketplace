@@ -5,3 +5,7 @@
 .vscode
 .vscode.local
 .vscode*.local
+
+.idea
+.idea.local
+.idea*.local
