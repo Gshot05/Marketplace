@@ -59,7 +59,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, verifyCode, password, role, name]
+              required: [email, verifyCode]
               properties:
                 email:
                   type: string
@@ -70,17 +70,6 @@ paths:
                   pattern: '^[0-9]{6}$'
                   description: 6-значный код подтверждения из email
                   example: "123456"
-                password:
-                  type: string
-                  minLength: 8
-                  example: securePassword123
-                role:
-                  type: string
-                  enum: [customer, performer]
-                  example: customer
-                name:
-                  type: string
-                  example: Иван Иванов
       responses:
         '200':
           description: Успешное подтверждение email
