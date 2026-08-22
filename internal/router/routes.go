@@ -7,6 +7,9 @@ import (
 	"marketplace/internal/notifications"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/service"
+	"marketplace/internal/workerpool"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -14,7 +17,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
+func envInt(key string, fallback int) int {
+	if v, ok := os.LookupEnv(key); ok {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return fallback
+}
+
+func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) (logWP *workerpool.Pool, mailWP *workerpool.Pool) {
 	// CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:8080"},
@@ -25,8 +37,12 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// Worker pools
+	logWP = workerpool.New(envInt("LOG_WORKERS", 2), envInt("LOG_QUEUE_SIZE", 256))
+	mailWP = workerpool.New(envInt("EMAIL_WORKERS", 3), envInt("EMAIL_QUEUE_SIZE", 64))
+
 	// Logger
-	logger := logger.NewLogger(pool)
+	logger := logger.NewLogger(pool, logWP)
 
 	//notifications
 	notifications := notifications.NewEmailNotifier()
@@ -34,7 +50,7 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	// Auth
 	auth := r.Group("/auth")
 	authRepo := repository.NewAuthRepo(pool)
-	authService := service.NewAuthService(authRepo, notifications)
+	authService := service.NewAuthService(authRepo, notifications, mailWP)
 	authHandler := handlers.NewAuthHandler(authService, logger)
 	auth.POST("/register", authHandler.Register())
 	auth.POST("/login", authHandler.Login())
@@ -69,4 +85,6 @@ func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool) {
 	v1.POST("/favorites", favoriteHandler.AddFavorite())
 	v1.DELETE("/favorites", favoriteHandler.DeleteFavorite())
 	v1.GET("/favorites", favoriteHandler.ListFavorites())
+
+	return logWP, mailWP
 }

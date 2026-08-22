@@ -6,19 +6,25 @@ import (
 	"log"
 	"time"
 
+	"marketplace/internal/workerpool"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Logger struct {
 	pool *pgxpool.Pool
+	wp   *workerpool.Pool
 }
 
-func NewLogger(pool *pgxpool.Pool) *Logger {
-	return &Logger{pool: pool}
+func NewLogger(pool *pgxpool.Pool, wp *workerpool.Pool) *Logger {
+	return &Logger{pool: pool, wp: wp}
 }
 
 func (l *Logger) LogAsync(level string, format string, args ...interface{}) {
-	go func() {
+	submitted := l.wp.Submit(func() {
+		if l.pool == nil {
+			return
+		}
 		message := fmt.Sprintf(format, args...)
 		_, err := l.pool.Exec(
 			context.Background(),
@@ -30,7 +36,10 @@ func (l *Logger) LogAsync(level string, format string, args ...interface{}) {
 		if err != nil {
 			log.Printf("Async log failed: %v", err)
 		}
-	}()
+	})
+	if !submitted {
+		log.Printf("Log queue full, dropped [%s] %s", level, fmt.Sprintf(format, args...))
+	}
 }
 
 // Удобные методы-обертки

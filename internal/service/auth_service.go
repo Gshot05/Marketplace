@@ -8,6 +8,7 @@ import (
 	"marketplace/internal/notifications"
 	repository "marketplace/internal/repo"
 	"marketplace/internal/utils"
+	"marketplace/internal/workerpool"
 	"sync"
 	"time"
 
@@ -17,15 +18,18 @@ import (
 type AuthService struct {
 	repo          repository.IAuthRepo
 	notifications notifications.INotifications
+	wp            *workerpool.Pool
 }
 
 func NewAuthService(
 	repo repository.IAuthRepo,
 	notifications notifications.INotifications,
+	wp *workerpool.Pool,
 ) *AuthService {
 	return &AuthService{
 		repo:          repo,
 		notifications: notifications,
+		wp:            wp,
 	}
 }
 

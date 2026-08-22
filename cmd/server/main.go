@@ -18,7 +18,7 @@ func main() {
 	pool := db.Connect()
 
 	r := gin.Default()
-	router.RegisterRoutes(r, pool)
+	logWP, mailWP := router.RegisterRoutes(r, pool)
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -42,6 +42,13 @@ func main() {
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("Ошибка при завершении сервера: %s\n", err)
+	}
+
+	if err := mailWP.Shutdown(ctx); err != nil {
+		log.Printf("Mail worker pool shutdown: %v", err)
+	}
+	if err := logWP.Shutdown(ctx); err != nil {
+		log.Printf("Log worker pool shutdown: %v", err)
 	}
 
 	pool.Close()
